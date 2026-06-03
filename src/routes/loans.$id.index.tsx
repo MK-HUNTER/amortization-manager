@@ -20,7 +20,7 @@ import type { LoanRow } from '@/lib/loans/schema';
 const loanQuery = (id: string) =>
   queryOptions({ queryKey: ['loan', id], queryFn: () => getLoan({ data: { id } }) });
 
-export const Route = createFileRoute('/loans/$id')({
+export const Route = createFileRoute('/loans/$id/')({
   head: ({ params }) => ({
     meta: [{ title: `Loan ${params.id.slice(0, 8)} · Amortix` }],
   }),
