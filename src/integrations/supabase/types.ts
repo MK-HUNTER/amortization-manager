@@ -14,7 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      loans: {
+        Row: {
+          balloon_amount: number | null
+          balloon_date: string | null
+          bank_name: string
+          borrowed_amount: number
+          created_at: string
+          emi_type: string
+          extra_payment: number | null
+          id: string
+          interest_rate: number
+          loan_number: string
+          loan_status: string
+          purpose: string | null
+          start_date: string
+          tenure_months: number
+          updated_at: string
+        }
+        Insert: {
+          balloon_amount?: number | null
+          balloon_date?: string | null
+          bank_name: string
+          borrowed_amount: number
+          created_at?: string
+          emi_type?: string
+          extra_payment?: number | null
+          id?: string
+          interest_rate: number
+          loan_number: string
+          loan_status?: string
+          purpose?: string | null
+          start_date: string
+          tenure_months: number
+          updated_at?: string
+        }
+        Update: {
+          balloon_amount?: number | null
+          balloon_date?: string | null
+          bank_name?: string
+          borrowed_amount?: number
+          created_at?: string
+          emi_type?: string
+          extra_payment?: number | null
+          id?: string
+          interest_rate?: number
+          loan_number?: string
+          loan_status?: string
+          purpose?: string | null
+          start_date?: string
+          tenure_months?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
