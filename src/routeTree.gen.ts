@@ -9,38 +9,138 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SummaryRouteImport } from './routes/summary'
+import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as LoansRouteImport } from './routes/loans'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LoansNewRouteImport } from './routes/loans.new'
+import { Route as LoansIdRouteImport } from './routes/loans.$id'
+import { Route as LoansIdScheduleRouteImport } from './routes/loans.$id.schedule'
 
+const SummaryRoute = SummaryRouteImport.update({
+  id: '/summary',
+  path: '/summary',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportsRoute = ReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoansRoute = LoansRouteImport.update({
+  id: '/loans',
+  path: '/loans',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoansNewRoute = LoansNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => LoansRoute,
+} as any)
+const LoansIdRoute = LoansIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => LoansRoute,
+} as any)
+const LoansIdScheduleRoute = LoansIdScheduleRouteImport.update({
+  id: '/schedule',
+  path: '/schedule',
+  getParentRoute: () => LoansIdRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/loans': typeof LoansRouteWithChildren
+  '/reports': typeof ReportsRoute
+  '/summary': typeof SummaryRoute
+  '/loans/$id': typeof LoansIdRouteWithChildren
+  '/loans/new': typeof LoansNewRoute
+  '/loans/$id/schedule': typeof LoansIdScheduleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/loans': typeof LoansRouteWithChildren
+  '/reports': typeof ReportsRoute
+  '/summary': typeof SummaryRoute
+  '/loans/$id': typeof LoansIdRouteWithChildren
+  '/loans/new': typeof LoansNewRoute
+  '/loans/$id/schedule': typeof LoansIdScheduleRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/loans': typeof LoansRouteWithChildren
+  '/reports': typeof ReportsRoute
+  '/summary': typeof SummaryRoute
+  '/loans/$id': typeof LoansIdRouteWithChildren
+  '/loans/new': typeof LoansNewRoute
+  '/loans/$id/schedule': typeof LoansIdScheduleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/loans'
+    | '/reports'
+    | '/summary'
+    | '/loans/$id'
+    | '/loans/new'
+    | '/loans/$id/schedule'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/loans'
+    | '/reports'
+    | '/summary'
+    | '/loans/$id'
+    | '/loans/new'
+    | '/loans/$id/schedule'
+  id:
+    | '__root__'
+    | '/'
+    | '/loans'
+    | '/reports'
+    | '/summary'
+    | '/loans/$id'
+    | '/loans/new'
+    | '/loans/$id/schedule'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LoansRoute: typeof LoansRouteWithChildren
+  ReportsRoute: typeof ReportsRoute
+  SummaryRoute: typeof SummaryRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/summary': {
+      id: '/summary'
+      path: '/summary'
+      fullPath: '/summary'
+      preLoaderRoute: typeof SummaryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reports': {
+      id: '/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof ReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/loans': {
+      id: '/loans'
+      path: '/loans'
+      fullPath: '/loans'
+      preLoaderRoute: typeof LoansRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,12 +148,69 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/loans/new': {
+      id: '/loans/new'
+      path: '/new'
+      fullPath: '/loans/new'
+      preLoaderRoute: typeof LoansNewRouteImport
+      parentRoute: typeof LoansRoute
+    }
+    '/loans/$id': {
+      id: '/loans/$id'
+      path: '/$id'
+      fullPath: '/loans/$id'
+      preLoaderRoute: typeof LoansIdRouteImport
+      parentRoute: typeof LoansRoute
+    }
+    '/loans/$id/schedule': {
+      id: '/loans/$id/schedule'
+      path: '/schedule'
+      fullPath: '/loans/$id/schedule'
+      preLoaderRoute: typeof LoansIdScheduleRouteImport
+      parentRoute: typeof LoansIdRoute
+    }
   }
 }
 
+interface LoansIdRouteChildren {
+  LoansIdScheduleRoute: typeof LoansIdScheduleRoute
+}
+
+const LoansIdRouteChildren: LoansIdRouteChildren = {
+  LoansIdScheduleRoute: LoansIdScheduleRoute,
+}
+
+const LoansIdRouteWithChildren =
+  LoansIdRoute._addFileChildren(LoansIdRouteChildren)
+
+interface LoansRouteChildren {
+  LoansIdRoute: typeof LoansIdRouteWithChildren
+  LoansNewRoute: typeof LoansNewRoute
+}
+
+const LoansRouteChildren: LoansRouteChildren = {
+  LoansIdRoute: LoansIdRouteWithChildren,
+  LoansNewRoute: LoansNewRoute,
+}
+
+const LoansRouteWithChildren = LoansRoute._addFileChildren(LoansRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LoansRoute: LoansRouteWithChildren,
+  ReportsRoute: ReportsRoute,
+  SummaryRoute: SummaryRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
