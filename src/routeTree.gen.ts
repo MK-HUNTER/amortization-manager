@@ -14,7 +14,7 @@ import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoansIndexRouteImport } from './routes/loans.index'
 import { Route as LoansNewRouteImport } from './routes/loans.new'
-import { Route as LoansIdRouteImport } from './routes/loans.$id'
+import { Route as LoansIdIndexRouteImport } from './routes/loans.$id.index'
 import { Route as LoansIdScheduleRouteImport } from './routes/loans.$id.schedule'
 
 const SummaryRoute = SummaryRouteImport.update({
@@ -42,10 +42,10 @@ const LoansNewRoute = LoansNewRouteImport.update({
   path: '/new',
   getParentRoute: () => LoansRoute,
 } as any)
-const LoansIdRoute = LoansIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => LoansRoute,
+const LoansIdIndexRoute = LoansIdIndexRouteImport.update({
+  id: '/loans/$id/',
+  path: '/loans/$id/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const LoansIdScheduleRoute = LoansIdScheduleRouteImport.update({
   id: '/schedule',
@@ -57,29 +57,29 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/reports': typeof ReportsRoute
   '/summary': typeof SummaryRoute
-  '/loans/$id': typeof LoansIdRouteWithChildren
   '/loans/new': typeof LoansNewRoute
   '/loans/': typeof LoansIndexRoute
   '/loans/$id/schedule': typeof LoansIdScheduleRoute
+  '/loans/$id/': typeof LoansIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/reports': typeof ReportsRoute
   '/summary': typeof SummaryRoute
-  '/loans/$id': typeof LoansIdRouteWithChildren
   '/loans/new': typeof LoansNewRoute
   '/loans': typeof LoansIndexRoute
   '/loans/$id/schedule': typeof LoansIdScheduleRoute
+  '/loans/$id': typeof LoansIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/reports': typeof ReportsRoute
   '/summary': typeof SummaryRoute
-  '/loans/$id': typeof LoansIdRouteWithChildren
   '/loans/new': typeof LoansNewRoute
   '/loans/': typeof LoansIndexRoute
   '/loans/$id/schedule': typeof LoansIdScheduleRoute
+  '/loans/$id/': typeof LoansIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -87,28 +87,28 @@ export interface FileRouteTypes {
     | '/'
     | '/reports'
     | '/summary'
-    | '/loans/$id'
     | '/loans/new'
     | '/loans/'
     | '/loans/$id/schedule'
+    | '/loans/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/reports'
     | '/summary'
-    | '/loans/$id'
     | '/loans/new'
     | '/loans'
     | '/loans/$id/schedule'
+    | '/loans/$id'
   id:
     | '__root__'
     | '/'
     | '/reports'
     | '/summary'
-    | '/loans/$id'
     | '/loans/new'
     | '/loans/'
     | '/loans/$id/schedule'
+    | '/loans/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -116,6 +116,7 @@ export interface RootRouteChildren {
   ReportsRoute: typeof ReportsRoute
   SummaryRoute: typeof SummaryRoute
   LoansIndexRoute: typeof LoansIndexRoute
+  LoansIdIndexRoute: typeof LoansIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -155,12 +156,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoansNewRouteImport
       parentRoute: typeof LoansRoute
     }
-    '/loans/$id': {
-      id: '/loans/$id'
-      path: '/$id'
-      fullPath: '/loans/$id'
-      preLoaderRoute: typeof LoansIdRouteImport
-      parentRoute: typeof LoansRoute
+    '/loans/$id/': {
+      id: '/loans/$id/'
+      path: '/loans/$id'
+      fullPath: '/loans/$id/'
+      preLoaderRoute: typeof LoansIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/loans/$id/schedule': {
       id: '/loans/$id/schedule'
@@ -177,6 +178,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReportsRoute: ReportsRoute,
   SummaryRoute: SummaryRoute,
   LoansIndexRoute: LoansIndexRoute,
+  LoansIdIndexRoute: LoansIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
