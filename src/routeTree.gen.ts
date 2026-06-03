@@ -11,8 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SummaryRouteImport } from './routes/summary'
 import { Route as ReportsRouteImport } from './routes/reports'
-import { Route as LoansRouteImport } from './routes/loans'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LoansIndexRouteImport } from './routes/loans.index'
 import { Route as LoansNewRouteImport } from './routes/loans.new'
 import { Route as LoansIdRouteImport } from './routes/loans.$id'
 import { Route as LoansIdScheduleRouteImport } from './routes/loans.$id.schedule'
@@ -27,14 +27,14 @@ const ReportsRoute = ReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LoansRoute = LoansRouteImport.update({
-  id: '/loans',
-  path: '/loans',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoansIndexRoute = LoansIndexRouteImport.update({
+  id: '/loans/',
+  path: '/loans/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoansNewRoute = LoansNewRouteImport.update({
@@ -55,67 +55,67 @@ const LoansIdScheduleRoute = LoansIdScheduleRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/loans': typeof LoansRouteWithChildren
   '/reports': typeof ReportsRoute
   '/summary': typeof SummaryRoute
   '/loans/$id': typeof LoansIdRouteWithChildren
   '/loans/new': typeof LoansNewRoute
+  '/loans/': typeof LoansIndexRoute
   '/loans/$id/schedule': typeof LoansIdScheduleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/loans': typeof LoansRouteWithChildren
   '/reports': typeof ReportsRoute
   '/summary': typeof SummaryRoute
   '/loans/$id': typeof LoansIdRouteWithChildren
   '/loans/new': typeof LoansNewRoute
+  '/loans': typeof LoansIndexRoute
   '/loans/$id/schedule': typeof LoansIdScheduleRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/loans': typeof LoansRouteWithChildren
   '/reports': typeof ReportsRoute
   '/summary': typeof SummaryRoute
   '/loans/$id': typeof LoansIdRouteWithChildren
   '/loans/new': typeof LoansNewRoute
+  '/loans/': typeof LoansIndexRoute
   '/loans/$id/schedule': typeof LoansIdScheduleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/loans'
     | '/reports'
     | '/summary'
     | '/loans/$id'
     | '/loans/new'
+    | '/loans/'
     | '/loans/$id/schedule'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/loans'
     | '/reports'
     | '/summary'
     | '/loans/$id'
     | '/loans/new'
+    | '/loans'
     | '/loans/$id/schedule'
   id:
     | '__root__'
     | '/'
-    | '/loans'
     | '/reports'
     | '/summary'
     | '/loans/$id'
     | '/loans/new'
+    | '/loans/'
     | '/loans/$id/schedule'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  LoansRoute: typeof LoansRouteWithChildren
   ReportsRoute: typeof ReportsRoute
   SummaryRoute: typeof SummaryRoute
+  LoansIndexRoute: typeof LoansIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -134,18 +134,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReportsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/loans': {
-      id: '/loans'
-      path: '/loans'
-      fullPath: '/loans'
-      preLoaderRoute: typeof LoansRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/loans/': {
+      id: '/loans/'
+      path: '/loans'
+      fullPath: '/loans/'
+      preLoaderRoute: typeof LoansIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/loans/new': {
@@ -172,35 +172,22 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface LoansIdRouteChildren {
-  LoansIdScheduleRoute: typeof LoansIdScheduleRoute
-}
-
-const LoansIdRouteChildren: LoansIdRouteChildren = {
-  LoansIdScheduleRoute: LoansIdScheduleRoute,
-}
-
-const LoansIdRouteWithChildren =
-  LoansIdRoute._addFileChildren(LoansIdRouteChildren)
-
-interface LoansRouteChildren {
-  LoansIdRoute: typeof LoansIdRouteWithChildren
-  LoansNewRoute: typeof LoansNewRoute
-}
-
-const LoansRouteChildren: LoansRouteChildren = {
-  LoansIdRoute: LoansIdRouteWithChildren,
-  LoansNewRoute: LoansNewRoute,
-}
-
-const LoansRouteWithChildren = LoansRoute._addFileChildren(LoansRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  LoansRoute: LoansRouteWithChildren,
   ReportsRoute: ReportsRoute,
   SummaryRoute: SummaryRoute,
+  LoansIndexRoute: LoansIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
