@@ -34,7 +34,7 @@ import type { LoanRow } from '@/lib/loans/schema';
 
 const loansQuery = queryOptions({ queryKey: ['loans'], queryFn: () => listLoans() });
 
-export const Route = createFileRoute('/loans')({
+export const Route = createFileRoute('/loans/')({
   head: () => ({
     meta: [
       { title: 'Loans · Amortix' },
