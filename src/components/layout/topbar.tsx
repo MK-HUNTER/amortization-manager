@@ -1,4 +1,4 @@
-import { Bell, Menu, Moon, Search, Sun, User2 } from "lucide-react";
+import { Bell, Menu, Moon, Sun, User2 } from "lucide-react";
 import { format } from "date-fns";
 import { useEffect } from "react";
 import { useUIStore } from "@/store/ui-store";
@@ -23,16 +23,6 @@ export function Topbar() {
           <Menu className="h-5 w-5" />
         </button>
 
-        <div className="hidden flex-1 max-w-md md:flex">
-          <div className="relative w-full">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="search"
-              placeholder="Search loans, banks, payments…"
-              className="h-10 w-full rounded-xl border border-input bg-card pl-9 pr-3 text-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30"
-            />
-          </div>
-        </div>
 
         <div className="ml-auto flex items-center gap-2 sm:gap-3">
           <div className="hidden text-right md:block">
