@@ -10,6 +10,7 @@ import {
 import { type ReactNode } from "react";
 import { Toaster } from "sonner";
 import { AppShell } from "@/components/layout/app-shell";
+import { CommandMenu } from "@/components/layout/command-menu";
 
 import appCss from "../styles.css?url";
 
@@ -129,6 +130,7 @@ function RootComponent() {
         <Outlet />
       </AppShell>
       <Toaster position="top-right" richColors closeButton theme="system" />
+      <CommandMenu />
     </QueryClientProvider>
   );
 }
