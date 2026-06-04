@@ -38,9 +38,9 @@ const LoansIndexRoute = LoansIndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoansNewRoute = LoansNewRouteImport.update({
-  id: '/new',
-  path: '/new',
-  getParentRoute: () => LoansRoute,
+  id: '/loans/new',
+  path: '/loans/new',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const LoansIdIndexRoute = LoansIdIndexRouteImport.update({
   id: '/loans/$id/',
@@ -48,9 +48,9 @@ const LoansIdIndexRoute = LoansIdIndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoansIdScheduleRoute = LoansIdScheduleRouteImport.update({
-  id: '/schedule',
-  path: '/schedule',
-  getParentRoute: () => LoansIdRoute,
+  id: '/loans/$id/schedule',
+  path: '/loans/$id/schedule',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -115,7 +115,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ReportsRoute: typeof ReportsRoute
   SummaryRoute: typeof SummaryRoute
+  LoansNewRoute: typeof LoansNewRoute
   LoansIndexRoute: typeof LoansIndexRoute
+  LoansIdScheduleRoute: typeof LoansIdScheduleRoute
   LoansIdIndexRoute: typeof LoansIdIndexRoute
 }
 
@@ -151,10 +153,10 @@ declare module '@tanstack/react-router' {
     }
     '/loans/new': {
       id: '/loans/new'
-      path: '/new'
+      path: '/loans/new'
       fullPath: '/loans/new'
       preLoaderRoute: typeof LoansNewRouteImport
-      parentRoute: typeof LoansRoute
+      parentRoute: typeof rootRouteImport
     }
     '/loans/$id/': {
       id: '/loans/$id/'
@@ -165,10 +167,10 @@ declare module '@tanstack/react-router' {
     }
     '/loans/$id/schedule': {
       id: '/loans/$id/schedule'
-      path: '/schedule'
+      path: '/loans/$id/schedule'
       fullPath: '/loans/$id/schedule'
       preLoaderRoute: typeof LoansIdScheduleRouteImport
-      parentRoute: typeof LoansIdRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -177,7 +179,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ReportsRoute: ReportsRoute,
   SummaryRoute: SummaryRoute,
+  LoansNewRoute: LoansNewRoute,
   LoansIndexRoute: LoansIndexRoute,
+  LoansIdScheduleRoute: LoansIdScheduleRoute,
   LoansIdIndexRoute: LoansIdIndexRoute,
 }
 export const routeTree = rootRouteImport
