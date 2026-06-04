@@ -1,20 +1,20 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
-import { queryOptions, useSuspenseQuery } from '@tanstack/react-query';
-import { FileText, PlusCircle } from 'lucide-react';
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { FileText, PlusCircle } from "lucide-react";
 
-import { listLoans } from '@/lib/loans/loans.functions';
-import { calculateEmi } from '@/lib/loans/amortization';
-import { currency, percent } from '@/lib/format';
-import { StatusBadge } from '@/components/ui/status-badge';
-import type { LoanRow } from '@/lib/loans/schema';
+import { listLoans } from "@/lib/loans/loans.functions";
+import { calculateEmi } from "@/lib/loans/amortization";
+import { currency, percent } from "@/lib/format";
+import { StatusBadge } from "@/components/ui/status-badge";
+import type { LoanRow } from "@/lib/loans/schema";
 
-const loansQuery = queryOptions({ queryKey: ['loans'], queryFn: () => listLoans() });
+const loansQuery = queryOptions({ queryKey: ["loans"], queryFn: () => listLoans() });
 
-export const Route = createFileRoute('/summary')({
+export const Route = createFileRoute("/summary")({
   head: () => ({
     meta: [
-      { title: 'Loan Summary · Amortix' },
-      { name: 'description', content: 'Pick a loan to review its full amortization summary.' },
+      { title: "Loan Summary · Amortix" },
+      { name: "description", content: "Pick a loan to review its full amortization summary." },
     ],
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(loansQuery),

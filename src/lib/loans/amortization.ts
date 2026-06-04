@@ -2,7 +2,7 @@
  * Loan Amortization Engine — pure business logic, framework-agnostic.
  * Safe to use on both client (for live preview) and server.
  */
-import { addMonths, formatISO } from 'date-fns';
+import { addMonths, formatISO } from "date-fns";
 
 export interface LoanInput {
   borrowedAmount: number;
@@ -67,7 +67,7 @@ export function generateSchedule(input: LoanInput): ScheduleSummary {
   const safetyCap = Math.max(tenureMonths * 2, 720);
 
   while (balance > 0.5 && month <= safetyCap) {
-    const date = formatISO(addMonths(start, month - 1), { representation: 'date' });
+    const date = formatISO(addMonths(start, month - 1), { representation: "date" });
     const interest = balance * monthlyRate;
     let principal = Math.min(baseEmi - interest, balance);
     if (principal < 0) principal = 0;
@@ -81,7 +81,9 @@ export function generateSchedule(input: LoanInput): ScheduleSummary {
     let balloon = 0;
     if (balloonDate && balloonAmount && date >= balloonDate) {
       // Apply balloon once on first qualifying month
-      const alreadyApplied = schedule.some((r) => r.date >= balloonDate && (r as PaymentRow).extra >= balloonAmount);
+      const alreadyApplied = schedule.some(
+        (r) => r.date >= balloonDate && (r as PaymentRow).extra >= balloonAmount,
+      );
       if (!alreadyApplied) {
         balloon = Math.min(balloonAmount, balance - principal - extra);
         if (balloon < 0) balloon = 0;

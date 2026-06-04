@@ -1,13 +1,13 @@
-import { Download } from 'lucide-react';
-import type { LoanRow } from '@/lib/loans/schema';
-import { generateSchedule } from '@/lib/loans/amortization';
-import { exportScheduleToExcel } from '@/lib/loans/export-excel';
-import { cn } from '@/lib/utils';
+import { Download } from "lucide-react";
+import type { LoanRow } from "@/lib/loans/schema";
+import { generateSchedule } from "@/lib/loans/amortization";
+import { exportScheduleToExcel } from "@/lib/loans/export-excel";
+import { cn } from "@/lib/utils";
 
 export function ExcelExportButton({
   loan,
   className,
-  label = 'Export to Excel',
+  label = "Export to Excel",
 }: {
   loan: LoanRow;
   className?: string;
@@ -30,7 +30,7 @@ export function ExcelExportButton({
     <button
       onClick={handle}
       className={cn(
-        'inline-flex items-center gap-2 rounded-xl bg-gradient-primary px-4 py-2.5 text-sm font-semibold text-white shadow-card transition-transform hover:-translate-y-0.5 hover:shadow-glow active:translate-y-0',
+        "inline-flex items-center gap-2 rounded-xl bg-gradient-primary px-4 py-2.5 text-sm font-semibold text-white shadow-card transition-transform hover:-translate-y-0.5 hover:shadow-glow active:translate-y-0",
         className,
       )}
     >

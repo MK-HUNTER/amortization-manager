@@ -1,15 +1,15 @@
-import { Bell, Menu, Moon, Search, Sun, User2 } from 'lucide-react';
-import { format } from 'date-fns';
-import { useEffect } from 'react';
-import { useUIStore } from '@/store/ui-store';
+import { Bell, Menu, Moon, Search, Sun, User2 } from "lucide-react";
+import { format } from "date-fns";
+import { useEffect } from "react";
+import { useUIStore } from "@/store/ui-store";
 
 export function Topbar() {
   const { toggleSidebar, theme, toggleTheme } = useUIStore();
 
   useEffect(() => {
     const root = document.documentElement;
-    if (theme === 'dark') root.classList.add('dark');
-    else root.classList.remove('dark');
+    if (theme === "dark") root.classList.add("dark");
+    else root.classList.remove("dark");
   }, [theme]);
 
   return (
@@ -37,14 +37,14 @@ export function Topbar() {
         <div className="ml-auto flex items-center gap-2 sm:gap-3">
           <div className="hidden text-right md:block">
             <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Today</div>
-            <div className="text-sm font-medium">{format(new Date(), 'EEE, MMM d, yyyy')}</div>
+            <div className="text-sm font-medium">{format(new Date(), "EEE, MMM d, yyyy")}</div>
           </div>
           <button
             onClick={toggleTheme}
             className="rounded-lg p-2 text-muted-foreground hover:bg-accent"
             aria-label="Toggle theme"
           >
-            {theme === 'dark' ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
+            {theme === "dark" ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
           </button>
           <button
             className="relative rounded-lg p-2 text-muted-foreground hover:bg-accent"

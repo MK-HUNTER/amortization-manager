@@ -1,10 +1,19 @@
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { format, parseISO } from 'date-fns';
-import { compactCurrency, currencyDetail } from '@/lib/format';
-import type { PaymentRow } from '@/lib/loans/amortization';
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { format, parseISO } from "date-fns";
+import { compactCurrency, currencyDetail } from "@/lib/format";
+import type { PaymentRow } from "@/lib/loans/amortization";
 
 export function BalanceTrendChart({ data }: { data: PaymentRow[] }) {
-  const sampled = data.length > 60 ? data.filter((_, i) => i % Math.ceil(data.length / 60) === 0) : data;
+  const sampled =
+    data.length > 60 ? data.filter((_, i) => i % Math.ceil(data.length / 60) === 0) : data;
   return (
     <ResponsiveContainer width="100%" height={280}>
       <AreaChart data={sampled} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
@@ -17,7 +26,7 @@ export function BalanceTrendChart({ data }: { data: PaymentRow[] }) {
         <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
         <XAxis
           dataKey="date"
-          tickFormatter={(d) => format(parseISO(d), 'MMM yy')}
+          tickFormatter={(d) => format(parseISO(d), "MMM yy")}
           stroke="var(--color-muted-foreground)"
           tick={{ fontSize: 11 }}
           minTickGap={20}
@@ -30,14 +39,20 @@ export function BalanceTrendChart({ data }: { data: PaymentRow[] }) {
         />
         <Tooltip
           contentStyle={{
-            background: 'var(--color-card)',
-            border: '1px solid var(--color-border)',
+            background: "var(--color-card)",
+            border: "1px solid var(--color-border)",
             borderRadius: 12,
           }}
-          labelFormatter={(d) => format(parseISO(d as string), 'PP')}
+          labelFormatter={(d) => format(parseISO(d as string), "PP")}
           formatter={(v: number) => currencyDetail(v)}
         />
-        <Area type="monotone" dataKey="balance" stroke="var(--color-primary)" strokeWidth={2.5} fill="url(#balFill)" />
+        <Area
+          type="monotone"
+          dataKey="balance"
+          stroke="var(--color-primary)"
+          strokeWidth={2.5}
+          fill="url(#balFill)"
+        />
       </AreaChart>
     </ResponsiveContainer>
   );

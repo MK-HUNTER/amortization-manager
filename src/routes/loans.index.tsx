@@ -1,6 +1,6 @@
-import { createFileRoute, Link, useRouter } from '@tanstack/react-router';
-import { queryOptions, useSuspenseQuery, useQueryClient } from '@tanstack/react-query';
-import { useServerFn } from '@tanstack/react-start';
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { queryOptions, useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import {
   flexRender,
   getCoreRowModel,
@@ -10,9 +10,9 @@ import {
   useReactTable,
   type ColumnDef,
   type SortingState,
-} from '@tanstack/react-table';
-import { useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
+} from "@tanstack/react-table";
+import { useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import {
   ArrowUpDown,
   ChevronLeft,
@@ -22,23 +22,26 @@ import {
   Search,
   Trash2,
   Wallet,
-} from 'lucide-react';
-import { format, parseISO } from 'date-fns';
-import { toast } from 'sonner';
+} from "lucide-react";
+import { format, parseISO } from "date-fns";
+import { toast } from "sonner";
 
-import { deleteLoan, listLoans } from '@/lib/loans/loans.functions';
-import { calculateEmi } from '@/lib/loans/amortization';
-import { currency, percent } from '@/lib/format';
-import { StatusBadge } from '@/components/ui/status-badge';
-import type { LoanRow } from '@/lib/loans/schema';
+import { deleteLoan, listLoans } from "@/lib/loans/loans.functions";
+import { calculateEmi } from "@/lib/loans/amortization";
+import { currency, percent } from "@/lib/format";
+import { StatusBadge } from "@/components/ui/status-badge";
+import type { LoanRow } from "@/lib/loans/schema";
 
-const loansQuery = queryOptions({ queryKey: ['loans'], queryFn: () => listLoans() });
+const loansQuery = queryOptions({ queryKey: ["loans"], queryFn: () => listLoans() });
 
-export const Route = createFileRoute('/loans/')({
+export const Route = createFileRoute("/loans/")({
   head: () => ({
     meta: [
-      { title: 'Loans · Amortix' },
-      { name: 'description', content: 'Enterprise loan registry with sorting, search, and pagination.' },
+      { title: "Loans · Amortix" },
+      {
+        name: "description",
+        content: "Enterprise loan registry with sorting, search, and pagination.",
+      },
     ],
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(loansQuery),
@@ -48,8 +51,8 @@ export const Route = createFileRoute('/loans/')({
 function LoansPage() {
   const { data } = useSuspenseQuery(loansQuery);
   const loans = data.loans as LoanRow[];
-  const [sorting, setSorting] = useState<SortingState>([{ id: 'created_at', desc: true }]);
-  const [globalFilter, setGlobalFilter] = useState('');
+  const [sorting, setSorting] = useState<SortingState>([{ id: "created_at", desc: true }]);
+  const [globalFilter, setGlobalFilter] = useState("");
   const router = useRouter();
   const qc = useQueryClient();
   const deleteFn = useServerFn(deleteLoan);
@@ -57,11 +60,11 @@ function LoansPage() {
   const columns = useMemo<ColumnDef<LoanRow>[]>(
     () => [
       {
-        accessorKey: 'bank_name',
+        accessorKey: "bank_name",
         header: ({ column }) => (
           <button
             className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Bank / Loan # <ArrowUpDown className="h-3 w-3" />
           </button>
@@ -79,13 +82,17 @@ function LoansPage() {
           </Link>
         ),
       },
-      { accessorKey: 'purpose', header: 'Purpose', cell: ({ getValue }) => (getValue() as string) ?? '—' },
       {
-        accessorKey: 'borrowed_amount',
+        accessorKey: "purpose",
+        header: "Purpose",
+        cell: ({ getValue }) => (getValue() as string) ?? "—",
+      },
+      {
+        accessorKey: "borrowed_amount",
         header: ({ column }) => (
           <button
             className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Amount <ArrowUpDown className="h-3 w-3" />
           </button>
@@ -93,18 +100,18 @@ function LoansPage() {
         cell: ({ getValue }) => <span className="font-medium">{currency(Number(getValue()))}</span>,
       },
       {
-        accessorKey: 'interest_rate',
-        header: 'Rate',
+        accessorKey: "interest_rate",
+        header: "Rate",
         cell: ({ getValue }) => percent(Number(getValue())),
       },
       {
-        accessorKey: 'tenure_months',
-        header: 'Tenure',
+        accessorKey: "tenure_months",
+        header: "Tenure",
         cell: ({ getValue }) => `${getValue()} mo`,
       },
       {
-        id: 'emi',
-        header: 'EMI',
+        id: "emi",
+        header: "EMI",
         cell: ({ row }) =>
           currency(
             calculateEmi(
@@ -115,18 +122,18 @@ function LoansPage() {
           ),
       },
       {
-        accessorKey: 'start_date',
-        header: 'Start',
-        cell: ({ getValue }) => format(parseISO(getValue() as string), 'MMM d, yyyy'),
+        accessorKey: "start_date",
+        header: "Start",
+        cell: ({ getValue }) => format(parseISO(getValue() as string), "MMM d, yyyy"),
       },
       {
-        accessorKey: 'loan_status',
-        header: 'Status',
+        accessorKey: "loan_status",
+        header: "Status",
         cell: ({ getValue }) => <StatusBadge status={getValue() as string} />,
       },
       {
-        id: 'actions',
-        header: '',
+        id: "actions",
+        header: "",
         cell: ({ row }) => (
           <div className="flex items-center justify-end gap-1">
             <Link
@@ -142,9 +149,9 @@ function LoansPage() {
                 if (!confirm(`Delete loan ${row.original.loan_number}?`)) return;
                 try {
                   await deleteFn({ data: { id: row.original.id } });
-                  await qc.invalidateQueries({ queryKey: ['loans'] });
+                  await qc.invalidateQueries({ queryKey: ["loans"] });
                   router.invalidate();
-                  toast.success('Loan deleted');
+                  toast.success("Loan deleted");
                 } catch (e) {
                   toast.error((e as Error).message);
                 }
@@ -183,7 +190,8 @@ function LoansPage() {
           </div>
           <h1 className="mt-1 text-3xl font-bold tracking-tight">Loans</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {loans.length} record{loans.length === 1 ? '' : 's'} — sort, search, and drill into any loan.
+            {loans.length} record{loans.length === 1 ? "" : "s"} — sort, search, and drill into any
+            loan.
           </p>
         </div>
         <Link
@@ -220,7 +228,9 @@ function LoansPage() {
               <Wallet className="h-6 w-6" />
             </div>
             <h3 className="mt-4 text-base font-semibold">No loans yet</h3>
-            <p className="mt-1 text-sm text-muted-foreground">Add your first loan to populate the registry.</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Add your first loan to populate the registry.
+            </p>
             <Link
               to="/loans/new"
               className="mt-5 inline-flex items-center gap-2 rounded-xl bg-gradient-primary px-4 py-2.5 text-sm font-semibold text-white shadow-card"
@@ -240,7 +250,9 @@ function LoansPage() {
                           key={h.id}
                           className="px-5 py-3 text-[11px] font-medium uppercase tracking-wider text-muted-foreground"
                         >
-                          {h.isPlaceholder ? null : flexRender(h.column.columnDef.header, h.getContext())}
+                          {h.isPlaceholder
+                            ? null
+                            : flexRender(h.column.columnDef.header, h.getContext())}
                         </th>
                       ))}
                     </tr>
@@ -248,7 +260,10 @@ function LoansPage() {
                 </thead>
                 <tbody>
                   {table.getRowModel().rows.map((row) => (
-                    <tr key={row.id} className="border-b border-border/60 last:border-0 hover:bg-accent/40">
+                    <tr
+                      key={row.id}
+                      className="border-b border-border/60 last:border-0 hover:bg-accent/40"
+                    >
                       {row.getVisibleCells().map((cell) => (
                         <td key={cell.id} className="px-5 py-3 align-middle">
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}

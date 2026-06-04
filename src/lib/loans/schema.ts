@@ -1,18 +1,18 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const loanFormSchema = z.object({
-  bank_name: z.string().trim().min(1, 'Bank name required').max(120),
-  loan_number: z.string().trim().min(1, 'Loan number required').max(60),
-  purpose: z.string().trim().max(200).optional().or(z.literal('')),
-  borrowed_amount: z.coerce.number().positive('Must be positive').max(1_000_000_000),
-  interest_rate: z.coerce.number().min(0, 'Cannot be negative').max(100, 'Max 100%'),
+  bank_name: z.string().trim().min(1, "Bank name required").max(120),
+  loan_number: z.string().trim().min(1, "Loan number required").max(60),
+  purpose: z.string().trim().max(200).optional().or(z.literal("")),
+  borrowed_amount: z.coerce.number().positive("Must be positive").max(1_000_000_000),
+  interest_rate: z.coerce.number().min(0, "Cannot be negative").max(100, "Max 100%"),
   tenure_months: z.coerce.number().int().min(1).max(600),
-  start_date: z.string().min(1, 'Start date required'),
-  balloon_date: z.string().optional().or(z.literal('')),
+  start_date: z.string().min(1, "Start date required"),
+  balloon_date: z.string().optional().or(z.literal("")),
   balloon_amount: z.coerce.number().min(0).optional().or(z.nan()),
   extra_payment: z.coerce.number().min(0).optional().or(z.nan()),
-  emi_type: z.enum(['standard', 'reducing', 'flat']).default('standard'),
-  loan_status: z.enum(['active', 'closed', 'overdue']).default('active'),
+  emi_type: z.enum(["standard", "reducing", "flat"]).default("standard"),
+  loan_status: z.enum(["active", "closed", "overdue"]).default("active"),
 });
 
 export type LoanFormValues = z.input<typeof loanFormSchema>;

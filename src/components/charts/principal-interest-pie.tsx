@@ -1,5 +1,5 @@
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
-import { currencyDetail } from '@/lib/format';
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import { currencyDetail } from "@/lib/format";
 
 export function PrincipalInterestPie({
   principal,
@@ -9,16 +9,16 @@ export function PrincipalInterestPie({
   interest: number;
 }) {
   const data = [
-    { name: 'Principal', value: principal, color: 'var(--color-primary)' },
-    { name: 'Interest', value: interest, color: 'var(--color-chart-3)' },
+    { name: "Principal", value: principal, color: "var(--color-primary)" },
+    { name: "Interest", value: interest, color: "var(--color-chart-3)" },
   ];
   return (
     <ResponsiveContainer width="100%" height={260}>
       <PieChart>
         <Tooltip
           contentStyle={{
-            background: 'var(--color-card)',
-            border: '1px solid var(--color-border)',
+            background: "var(--color-card)",
+            border: "1px solid var(--color-border)",
             borderRadius: 12,
           }}
           formatter={(v: number) => currencyDetail(v)}

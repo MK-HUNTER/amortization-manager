@@ -1,28 +1,36 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
-import { queryOptions, useSuspenseQuery } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
-import { ArrowUpRight, Banknote, Layers, PiggyBank, Percent, Wallet, PlusCircle } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
+import {
+  ArrowUpRight,
+  Banknote,
+  Layers,
+  PiggyBank,
+  Percent,
+  Wallet,
+  PlusCircle,
+} from "lucide-react";
+import { format, parseISO } from "date-fns";
 
-import { listLoans } from '@/lib/loans/loans.functions';
-import { calculateEmi, generateSchedule } from '@/lib/loans/amortization';
-import { compactCurrency, currency, percent } from '@/lib/format';
-import { KpiCard } from '@/components/dashboard/kpi-card';
-import { BalanceTrendChart } from '@/components/charts/balance-trend';
-import { PrincipalInterestPie } from '@/components/charts/principal-interest-pie';
-import { StatusBadge } from '@/components/ui/status-badge';
-import type { LoanRow } from '@/lib/loans/schema';
+import { listLoans } from "@/lib/loans/loans.functions";
+import { calculateEmi, generateSchedule } from "@/lib/loans/amortization";
+import { compactCurrency, currency, percent } from "@/lib/format";
+import { KpiCard } from "@/components/dashboard/kpi-card";
+import { BalanceTrendChart } from "@/components/charts/balance-trend";
+import { PrincipalInterestPie } from "@/components/charts/principal-interest-pie";
+import { StatusBadge } from "@/components/ui/status-badge";
+import type { LoanRow } from "@/lib/loans/schema";
 
 const loansQuery = queryOptions({
-  queryKey: ['loans'],
+  queryKey: ["loans"],
   queryFn: () => listLoans(),
 });
 
-export const Route = createFileRoute('/')({
+export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: 'Dashboard · Amortix' },
-      { name: 'description', content: 'Portfolio KPIs, trends, and recent loan activity.' },
+      { title: "Dashboard · Amortix" },
+      { name: "description", content: "Portfolio KPIs, trends, and recent loan activity." },
     ],
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(loansQuery),
@@ -40,7 +48,7 @@ function buildAggregates(loans: LoanRow[]) {
   const balanceSeries = new Map<string, number>();
 
   for (const loan of loans) {
-    if (loan.loan_status !== 'active') continue;
+    if (loan.loan_status !== "active") continue;
     const summary = generateSchedule({
       borrowedAmount: Number(loan.borrowed_amount),
       interestRate: Number(loan.interest_rate),
@@ -79,7 +87,7 @@ function Dashboard() {
   const { data } = useSuspenseQuery(loansQuery);
   const loans = data.loans as LoanRow[];
 
-  const active = loans.filter((l) => l.loan_status === 'active');
+  const active = loans.filter((l) => l.loan_status === "active");
   const portfolio = loans.reduce((s, l) => s + Number(l.borrowed_amount), 0);
   const avgRate =
     loans.length === 0 ? 0 : loans.reduce((s, l) => s + Number(l.interest_rate), 0) / loans.length;
@@ -91,11 +99,41 @@ function Dashboard() {
   const { trend, totals } = buildAggregates(loans);
 
   const kpis = [
-    { label: 'Total loans', value: String(loans.length).padStart(2, '0'), hint: 'All-time records', icon: Layers, variant: 'primary' as const },
-    { label: 'Active loans', value: String(active.length).padStart(2, '0'), hint: 'Currently amortizing', icon: Wallet, variant: 'success' as const },
-    { label: 'Portfolio value', value: compactCurrency(portfolio), hint: 'Total borrowed', icon: PiggyBank, variant: 'cool' as const },
-    { label: 'Monthly EMI', value: compactCurrency(monthlyEmi), hint: 'Across active loans', icon: Banknote, variant: 'warm' as const },
-    { label: 'Avg. interest', value: percent(avgRate), hint: 'Weighted by count', icon: Percent, variant: 'neutral' as const },
+    {
+      label: "Total loans",
+      value: String(loans.length).padStart(2, "0"),
+      hint: "All-time records",
+      icon: Layers,
+      variant: "primary" as const,
+    },
+    {
+      label: "Active loans",
+      value: String(active.length).padStart(2, "0"),
+      hint: "Currently amortizing",
+      icon: Wallet,
+      variant: "success" as const,
+    },
+    {
+      label: "Portfolio value",
+      value: compactCurrency(portfolio),
+      hint: "Total borrowed",
+      icon: PiggyBank,
+      variant: "cool" as const,
+    },
+    {
+      label: "Monthly EMI",
+      value: compactCurrency(monthlyEmi),
+      hint: "Across active loans",
+      icon: Banknote,
+      variant: "warm" as const,
+    },
+    {
+      label: "Avg. interest",
+      value: percent(avgRate),
+      hint: "Weighted by count",
+      icon: Percent,
+      variant: "neutral" as const,
+    },
   ];
 
   return (
@@ -137,7 +175,9 @@ function Dashboard() {
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h2 className="text-base font-semibold">Aggregate loan balance trend</h2>
-              <p className="text-xs text-muted-foreground">Combined outstanding balance over time</p>
+              <p className="text-xs text-muted-foreground">
+                Combined outstanding balance over time
+              </p>
             </div>
           </div>
           {trend.length > 0 ? (
@@ -161,7 +201,11 @@ function Dashboard() {
             <>
               <PrincipalInterestPie principal={totals.principal} interest={totals.interest} />
               <div className="mt-4 flex justify-center gap-6 text-xs">
-                <Legend dotClass="bg-primary" label="Principal" value={currency(totals.principal)} />
+                <Legend
+                  dotClass="bg-primary"
+                  label="Principal"
+                  value={currency(totals.principal)}
+                />
                 <Legend dotClass="bg-chart-3" label="Interest" value={currency(totals.interest)} />
               </div>
             </>
@@ -216,7 +260,10 @@ function Dashboard() {
               </thead>
               <tbody>
                 {loans.slice(0, 5).map((l) => (
-                  <tr key={l.id} className="border-b border-border/60 last:border-0 hover:bg-accent/40">
+                  <tr
+                    key={l.id}
+                    className="border-b border-border/60 last:border-0 hover:bg-accent/40"
+                  >
                     <td className="px-5 py-3">
                       <Link
                         to="/loans/$id"
@@ -227,12 +274,12 @@ function Dashboard() {
                       </Link>
                       <div className="text-[11px] text-muted-foreground">#{l.loan_number}</div>
                     </td>
-                    <td className="px-5 py-3 text-muted-foreground">{l.purpose ?? '—'}</td>
+                    <td className="px-5 py-3 text-muted-foreground">{l.purpose ?? "—"}</td>
                     <td className="px-5 py-3 font-medium">{currency(Number(l.borrowed_amount))}</td>
                     <td className="px-5 py-3">{percent(Number(l.interest_rate))}</td>
                     <td className="px-5 py-3">{l.tenure_months} mo</td>
                     <td className="px-5 py-3 text-muted-foreground">
-                      {format(parseISO(l.start_date), 'MMM d, yyyy')}
+                      {format(parseISO(l.start_date), "MMM d, yyyy")}
                     </td>
                     <td className="px-5 py-3">
                       <StatusBadge status={l.loan_status} />
@@ -251,7 +298,14 @@ function Dashboard() {
 function Legend({ dotClass, label, value }: { dotClass: string; label: string; value: string }) {
   return (
     <div className="flex items-center gap-2">
-      <span className={`h-2.5 w-2.5 rounded-full ${dotClass === 'bg-chart-3' ? '' : ''}`} style={dotClass === 'bg-primary' ? { backgroundColor: 'var(--color-primary)' } : { backgroundColor: 'var(--color-chart-3)' }} />
+      <span
+        className={`h-2.5 w-2.5 rounded-full ${dotClass === "bg-chart-3" ? "" : ""}`}
+        style={
+          dotClass === "bg-primary"
+            ? { backgroundColor: "var(--color-primary)" }
+            : { backgroundColor: "var(--color-chart-3)" }
+        }
+      />
       <span className="text-muted-foreground">{label}</span>
       <span className="font-medium">{value}</span>
     </div>
