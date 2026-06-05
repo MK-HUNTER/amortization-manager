@@ -1,16 +1,34 @@
-import { Bell, Menu, Moon, Search, Sun, User2 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { BookOpen, Menu, Moon, Search, Sun, User2, LogOut } from "lucide-react";
 import { format } from "date-fns";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useUIStore } from "@/store/ui-store";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export function Topbar() {
   const { toggleSidebar, theme, toggleTheme, setCommandMenuOpen } = useUIStore();
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
     const root = document.documentElement;
     if (theme === "dark") root.classList.add("dark");
     else root.classList.remove("dark");
   }, [theme]);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUserEmail(user?.email ?? null);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserEmail(session?.user?.email ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
     <header className="sticky top-0 z-20 border-b border-border bg-background/70 backdrop-blur-xl">
@@ -46,22 +64,42 @@ export function Topbar() {
           >
             {theme === "dark" ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
           </button>
-          <button
-            className="relative rounded-lg p-2 text-muted-foreground hover:bg-accent"
-            aria-label="Notifications"
+          <Link
+            to="/docs"
+            className="rounded-lg p-2 text-muted-foreground hover:bg-accent"
+            aria-label="Documentation"
+            title="Documentation"
           >
-            <Bell className="h-4.5 w-4.5" />
-            <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-destructive" />
-          </button>
+            <BookOpen className="h-4.5 w-4.5" />
+          </Link>
           <div className="flex items-center gap-2 rounded-xl border border-border bg-card py-1.5 pl-1.5 pr-3">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-primary text-xs font-semibold text-white">
-              <User2 className="h-4 w-4" />
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-primary text-xs font-semibold text-white uppercase font-mono">
+              {userEmail ? userEmail.slice(0, 2) : <User2 className="h-4 w-4" />}
             </div>
             <div className="hidden sm:block">
-              <div className="text-xs font-semibold leading-tight">Treasury</div>
+              <div className="text-xs font-semibold leading-tight truncate max-w-[120px]">
+                {userEmail ? userEmail.split("@")[0] : "Treasury"}
+              </div>
               <div className="text-[10px] text-muted-foreground leading-tight">Admin workspace</div>
             </div>
           </div>
+          <button
+            onClick={async () => {
+              if (confirm("Sign out from Amortix?")) {
+                const { error } = await supabase.auth.signOut();
+                if (error) {
+                  toast.error(error.message);
+                } else {
+                  toast.success("Signed out successfully");
+                }
+              }
+            }}
+            className="rounded-lg p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+            title="Sign Out"
+            aria-label="Sign Out"
+          >
+            <LogOut className="h-4.5 w-4.5" />
+          </button>
         </div>
       </div>
     </header>

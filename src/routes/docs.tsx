@@ -170,7 +170,7 @@ function DocsPage() {
             <div>
               <h4 className="font-semibold text-foreground">Dynamic Calculations</h4>
               <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                Calculates precise schedules supporting prepayments, reducing balance types, flat
+                Calculates precise schedules supporting month-specific custom prepayments, reducing balance types, flat
                 interest types, and customized balloon maturities.
               </p>
             </div>
@@ -502,13 +502,15 @@ function DocsPage() {
                 </div>
 
                 <h4 className="font-semibold text-sm pt-2 text-foreground">
-                  Extra Payments (Prepayments)
+                  Extra Payments & Month-Specific Prepayments
                 </h4>
-                <p className="text-sm text-muted-foreground leading-relaxed">
+                <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
                   Adding extra principal payments monthly lowers the outstanding balance faster.
-                  Since interest is calculated on the remaining balance (Reducing Balance),
-                  pre-payments compound to shrink the overall interest paid and reduce the
-                  amortization period.
+                  In addition to standard recurring monthly prepayments, Amortix supports <strong>month-specific custom prepayments</strong>.
+                  Users can apply unique, one-off additional payments to any month of the schedule (excluding the final month).
+                </p>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  The amortization engine dynamically calculates interest savings, shifts payoff dates forward, and recalibrates the final balloon maturity amounts in real-time based on these combined extra payment schedules.
                 </p>
               </section>
             </div>
@@ -749,6 +751,90 @@ function DocsPage() {
                     </td>
                     <td className="py-3.5 pl-4 text-xs">
                       Current state of the loan contract: active, closed, overdue.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div className="pt-6">
+              <h3 className="text-base font-bold tracking-tight text-foreground">
+                Table: loan_extra_payments
+              </h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                Stores custom, one-off additional principal prepayments for individual months.
+              </p>
+            </div>
+
+            <div className="overflow-x-auto scrollbar-thin">
+              <table className="w-full text-sm text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-border text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
+                    <th className="pb-3 pr-4">Column Name</th>
+                    <th className="pb-3 px-4">Postgres Type</th>
+                    <th className="pb-3 px-4">Constraints</th>
+                    <th className="pb-3 pl-4">Functional Description</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/60">
+                  <tr className="hover:bg-accent/30">
+                    <td className="py-3.5 pr-4 font-mono text-xs text-primary font-bold">id</td>
+                    <td className="py-3.5 px-4 font-mono text-xs">uuid</td>
+                    <td className="py-3.5 px-4 text-xs text-muted-foreground">
+                      PRIMARY KEY, DEFAULT gen_random_uuid()
+                    </td>
+                    <td className="py-3.5 pl-4 text-xs">
+                      Unique identifier for the prepayment record.
+                    </td>
+                  </tr>
+                  <tr className="hover:bg-accent/30">
+                    <td className="py-3.5 pr-4 font-mono text-xs text-primary font-bold">loan_id</td>
+                    <td className="py-3.5 px-4 font-mono text-xs">uuid</td>
+                    <td className="py-3.5 px-4 text-xs text-muted-foreground">
+                      NOT NULL, REFERENCES loans(id) ON DELETE CASCADE
+                    </td>
+                    <td className="py-3.5 pl-4 text-xs">
+                      Foreign key linking the prepayment to its corresponding loan.
+                    </td>
+                  </tr>
+                  <tr className="hover:bg-accent/30">
+                    <td className="py-3.5 pr-4 font-mono text-xs text-primary font-bold">payment_no</td>
+                    <td className="py-3.5 px-4 font-mono text-xs">integer</td>
+                    <td className="py-3.5 px-4 text-xs text-muted-foreground">
+                      NOT NULL, CHECK (payment_no &gt; 0)
+                    </td>
+                    <td className="py-3.5 pl-4 text-xs">
+                      The specific month number in the schedule (1-indexed) where the prepayment is applied.
+                    </td>
+                  </tr>
+                  <tr className="hover:bg-accent/30">
+                    <td className="py-3.5 pr-4 font-mono text-xs text-primary font-bold">amount</td>
+                    <td className="py-3.5 px-4 font-mono text-xs">numeric</td>
+                    <td className="py-3.5 px-4 text-xs text-muted-foreground">
+                      NOT NULL, CHECK (amount &gt;= 0)
+                    </td>
+                    <td className="py-3.5 pl-4 text-xs">
+                      The financial amount of additional principal paid in this month.
+                    </td>
+                  </tr>
+                  <tr className="hover:bg-accent/30">
+                    <td className="py-3.5 pr-4 font-mono text-xs text-primary font-bold">created_at</td>
+                    <td className="py-3.5 px-4 font-mono text-xs">timestamptz</td>
+                    <td className="py-3.5 px-4 text-xs text-muted-foreground">
+                      NOT NULL, DEFAULT now()
+                    </td>
+                    <td className="py-3.5 pl-4 text-xs">
+                      Timestamp when the prepayment record was created.
+                    </td>
+                  </tr>
+                  <tr className="hover:bg-accent/30">
+                    <td className="py-3.5 pr-4 font-mono text-xs text-primary font-bold">updated_at</td>
+                    <td className="py-3.5 px-4 font-mono text-xs">timestamptz</td>
+                    <td className="py-3.5 px-4 text-xs text-muted-foreground">
+                      NOT NULL, DEFAULT now()
+                    </td>
+                    <td className="py-3.5 pl-4 text-xs">
+                      Timestamp when the prepayment record was last updated.
                     </td>
                   </tr>
                 </tbody>

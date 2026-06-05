@@ -6,11 +6,15 @@ import {
   useRouter,
   HeadContent,
   Scripts,
+  useRouterState,
+  useNavigate,
 } from "@tanstack/react-router";
-import { type ReactNode } from "react";
+import { type ReactNode, useState, useEffect } from "react";
 import { Toaster } from "sonner";
 import { AppShell } from "@/components/layout/app-shell";
 import { CommandMenu } from "@/components/layout/command-menu";
+import { supabase } from "@/integrations/supabase/client";
+import type { Session } from "@supabase/supabase-js";
 
 import appCss from "../styles.css?url";
 
@@ -123,12 +127,60 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoading(false);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (loading) return;
+
+    const isPublicRoute = pathname === "/login" || pathname === "/docs";
+    if (!session && !isPublicRoute) {
+      navigate({ to: "/login" });
+    } else if (session && pathname === "/login") {
+      navigate({ to: "/" });
+    }
+  }, [session, loading, pathname, navigate]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <div className="text-sm text-muted-foreground animate-pulse">Initializing Amortix...</div>
+        </div>
+      </div>
+    );
+  }
+
+  const isLoginPage = pathname === "/login";
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AppShell>
+      {isLoginPage ? (
         <Outlet />
-      </AppShell>
+      ) : (
+        <AppShell>
+          <Outlet />
+        </AppShell>
+      )}
       <Toaster position="top-right" richColors closeButton theme="system" />
       <CommandMenu />
     </QueryClientProvider>

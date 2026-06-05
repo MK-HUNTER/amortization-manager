@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SummaryRouteImport } from './routes/summary'
 import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as DocsRouteImport } from './routes/docs'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoansIndexRouteImport } from './routes/loans.index'
@@ -26,6 +27,11 @@ const SummaryRoute = SummaryRouteImport.update({
 const ReportsRoute = ReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DocsRoute = DocsRouteImport.update({
@@ -62,6 +68,7 @@ const LoansIdScheduleRoute = LoansIdScheduleRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/docs': typeof DocsRoute
+  '/login': typeof LoginRoute
   '/reports': typeof ReportsRoute
   '/summary': typeof SummaryRoute
   '/loans/new': typeof LoansNewRoute
@@ -72,6 +79,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/docs': typeof DocsRoute
+  '/login': typeof LoginRoute
   '/reports': typeof ReportsRoute
   '/summary': typeof SummaryRoute
   '/loans/new': typeof LoansNewRoute
@@ -83,6 +91,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/docs': typeof DocsRoute
+  '/login': typeof LoginRoute
   '/reports': typeof ReportsRoute
   '/summary': typeof SummaryRoute
   '/loans/new': typeof LoansNewRoute
@@ -95,6 +104,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/docs'
+    | '/login'
     | '/reports'
     | '/summary'
     | '/loans/new'
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/docs'
+    | '/login'
     | '/reports'
     | '/summary'
     | '/loans/new'
@@ -115,6 +126,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/docs'
+    | '/login'
     | '/reports'
     | '/summary'
     | '/loans/new'
@@ -126,6 +138,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DocsRoute: typeof DocsRoute
+  LoginRoute: typeof LoginRoute
   ReportsRoute: typeof ReportsRoute
   SummaryRoute: typeof SummaryRoute
   LoansNewRoute: typeof LoansNewRoute
@@ -148,6 +161,13 @@ declare module '@tanstack/react-router' {
       path: '/reports'
       fullPath: '/reports'
       preLoaderRoute: typeof ReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/docs': {
@@ -198,6 +218,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DocsRoute: DocsRoute,
+  LoginRoute: LoginRoute,
   ReportsRoute: ReportsRoute,
   SummaryRoute: SummaryRoute,
   LoansNewRoute: LoansNewRoute,

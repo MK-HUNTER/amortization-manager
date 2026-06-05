@@ -7,7 +7,6 @@ import {
   BarChart3,
   X,
   Sparkles,
-  BookOpen,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useUIStore } from "@/store/ui-store";
@@ -19,7 +18,6 @@ const nav = [
   { to: "/loans/new", label: "Add New Loan", icon: PlusCircle },
   { to: "/summary", label: "Loan Summary", icon: FileText },
   { to: "/reports", label: "Reports", icon: BarChart3 },
-  { to: "/docs", label: "Documentation", icon: BookOpen },
 ] as const;
 
 export function Sidebar() {
