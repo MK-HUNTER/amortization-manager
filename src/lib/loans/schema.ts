@@ -9,7 +9,7 @@ export const loanFormSchema = z.object({
   tenure_months: z.coerce.number().int().min(1).max(600),
   start_date: z.string().min(1, "Start date required"),
   balloon_date: z.string().optional().or(z.literal("")),
-  balloon_amount: z.coerce.number().min(0).optional().or(z.nan()),
+  balloon_amount: z.coerce.number().min(0).optional().nullable().or(z.nan()).or(z.literal("")),
   extra_payment: z.coerce.number().min(0).optional().or(z.nan()),
   emi_type: z.enum(["standard", "reducing", "flat"]).default("standard"),
   loan_status: z.enum(["active", "closed", "overdue"]).default("active"),
@@ -32,6 +32,15 @@ export interface LoanRow {
   extra_payment: number | null;
   emi_type: string;
   loan_status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LoanExtraPayment {
+  id: string;
+  loan_id: string;
+  payment_no: number;
+  amount: number;
   created_at: string;
   updated_at: string;
 }

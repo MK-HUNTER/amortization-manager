@@ -62,6 +62,41 @@ export type Database = {
         };
         Relationships: [];
       };
+      loan_extra_payments: {
+        Row: {
+          amount: number;
+          created_at: string;
+          id: string;
+          loan_id: string;
+          payment_no: number;
+          updated_at: string;
+        };
+        Insert: {
+          amount: number;
+          created_at?: string;
+          id?: string;
+          loan_id: string;
+          payment_no: number;
+          updated_at?: string;
+        };
+        Update: {
+          amount?: number;
+          created_at?: string;
+          id?: string;
+          loan_id?: string;
+          payment_no?: number;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "loan_extra_payments_loan_id_fkey";
+            columns: ["loan_id"];
+            isOneToOne: false;
+            referencedRelation: "loans";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
     };
     Views: {
       [_ in never]: never;

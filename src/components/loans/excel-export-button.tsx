@@ -6,10 +6,12 @@ import { cn } from "@/lib/utils";
 
 export function ExcelExportButton({
   loan,
+  customExtraPayments,
   className,
   label = "Export to Excel",
 }: {
   loan: LoanRow;
+  customExtraPayments?: Record<number, number>;
   className?: string;
   label?: string;
 }) {
@@ -22,6 +24,7 @@ export function ExcelExportButton({
       extraPayment: Number(loan.extra_payment ?? 0),
       balloonDate: loan.balloon_date,
       balloonAmount: loan.balloon_amount ? Number(loan.balloon_amount) : null,
+      customExtraPayments,
     });
     exportScheduleToExcel(loan, summary);
   };

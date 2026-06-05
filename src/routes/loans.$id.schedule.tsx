@@ -1,14 +1,17 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { queryOptions, useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Plus, Edit2, Check, X } from "lucide-react";
 import { format, parseISO } from "date-fns";
+import { useState, useMemo } from "react";
+import { toast } from "sonner";
 
-import { getLoan } from "@/lib/loans/loans.functions";
+import { getLoan, saveCustomExtraPayment } from "@/lib/loans/loans.functions";
 import { generateSchedule } from "@/lib/loans/amortization";
 import { currencyDetail } from "@/lib/format";
 import { ExcelExportButton } from "@/components/loans/excel-export-button";
-import type { LoanRow } from "@/lib/loans/schema";
+import type { LoanRow, LoanExtraPayment } from "@/lib/loans/schema";
 
 const loanQuery = (id: string) =>
   queryOptions({ queryKey: ["loan", id], queryFn: () => getLoan({ data: { id } }) });
@@ -27,7 +30,22 @@ function SchedulePage() {
   const { id } = Route.useParams();
   const { data } = useSuspenseQuery(loanQuery(id));
   const loan = data.loan as LoanRow;
+  const extraPayments = (data.extraPayments ?? []) as LoanExtraPayment[];
   const navigate = useNavigate();
+  const qc = useQueryClient();
+  const saveExtraFn = useServerFn(saveCustomExtraPayment);
+
+  const [activeEditMonth, setActiveEditMonth] = useState<number | null>(null);
+  const [editAmount, setEditAmount] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+
+  const customExtraPaymentsRecord = useMemo(() => {
+    const record: Record<number, number> = {};
+    for (const ep of extraPayments) {
+      record[ep.payment_no] = Number(ep.amount);
+    }
+    return record;
+  }, [extraPayments]);
 
   const summary = generateSchedule({
     borrowedAmount: Number(loan.borrowed_amount),
@@ -37,7 +55,34 @@ function SchedulePage() {
     extraPayment: Number(loan.extra_payment ?? 0),
     balloonDate: loan.balloon_date,
     balloonAmount: loan.balloon_amount ? Number(loan.balloon_amount) : null,
+    customExtraPayments: customExtraPaymentsRecord,
   });
+
+  const handleSave = async (paymentNo: number) => {
+    const amount = editAmount.trim() === "" ? 0 : Number(editAmount);
+    if (Number.isNaN(amount) || amount < 0) {
+      toast.error("Please enter a valid positive number");
+      return;
+    }
+    setIsSaving(true);
+    try {
+      await saveExtraFn({
+        data: {
+          loanId: id,
+          paymentNo,
+          amount,
+        },
+      });
+      await qc.invalidateQueries({ queryKey: ["loan", id] });
+      await qc.invalidateQueries({ queryKey: ["loans"] });
+      toast.success(amount > 0 ? "Additional payment saved" : "Additional payment removed");
+      setActiveEditMonth(null);
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -61,7 +106,7 @@ function SchedulePage() {
             payment
           </p>
         </div>
-        <ExcelExportButton loan={loan} />
+        <ExcelExportButton loan={loan} customExtraPayments={customExtraPaymentsRecord} />
       </div>
 
       <motion.div
@@ -97,8 +142,84 @@ function SchedulePage() {
                   <td className="px-4 py-2.5 text-right" style={{ color: "var(--color-chart-3)" }}>
                     {currencyDetail(row.interest)}
                   </td>
-                  <td className="px-4 py-2.5 text-right text-success">
-                    {row.extra > 0 ? currencyDetail(row.extra) : "—"}
+                  <td className="px-4 py-2.5 text-right">
+                    <div className="flex items-center justify-end gap-1.5 group/cell">
+                      {activeEditMonth === row.paymentNo ? (
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            autoFocus
+                            disabled={isSaving}
+                            value={editAmount}
+                            onChange={(e) => setEditAmount(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") handleSave(row.paymentNo);
+                              if (e.key === "Escape") setActiveEditMonth(null);
+                            }}
+                            className="h-7 w-20 rounded-lg border border-input bg-background px-1.5 py-0.5 text-right text-xs focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/30"
+                          />
+                          <button
+                            onClick={() => handleSave(row.paymentNo)}
+                            disabled={isSaving}
+                            className="rounded-md p-1 text-success hover:bg-success/10 disabled:opacity-40"
+                            title="Save"
+                          >
+                            <Check className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => setActiveEditMonth(null)}
+                            disabled={isSaving}
+                            className="rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-40"
+                            title="Cancel"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="text-right">
+                            {row.extra > 0 ? (
+                              <span className="font-medium text-success">
+                                {currencyDetail(row.extra)}
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground/40">—</span>
+                            )}
+                            {(customExtraPaymentsRecord[row.paymentNo] ?? 0) > 0 && (
+                              <div className="text-[10px] text-muted-foreground leading-none mt-0.5">
+                                (Custom: {currencyDetail(customExtraPaymentsRecord[row.paymentNo])})
+                              </div>
+                            )}
+                          </div>
+                          {row.paymentNo < summary.schedule.length && (
+                            <button
+                              onClick={() => {
+                                setActiveEditMonth(row.paymentNo);
+                                setEditAmount(
+                                  customExtraPaymentsRecord[row.paymentNo]
+                                    ? String(customExtraPaymentsRecord[row.paymentNo])
+                                    : "",
+                                );
+                              }}
+                              className="opacity-0 group-hover/cell:opacity-100 focus:opacity-100 rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground transition-opacity"
+                              title={
+                                (customExtraPaymentsRecord[row.paymentNo] ?? 0) > 0
+                                  ? "Edit extra payment"
+                                  : "Add extra payment"
+                              }
+                            >
+                              {(customExtraPaymentsRecord[row.paymentNo] ?? 0) > 0 ? (
+                                <Edit2 className="h-3 w-3" />
+                              ) : (
+                                <Plus className="h-3 w-3" />
+                              )}
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </td>
                   <td className="px-4 py-2.5 text-right font-semibold">
                     {currencyDetail(row.balance)}

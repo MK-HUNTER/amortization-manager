@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { toast } from "sonner";
+import { useMemo } from "react";
 
 import { deleteLoan, getLoan } from "@/lib/loans/loans.functions";
 import { generateSchedule } from "@/lib/loans/amortization";
@@ -23,7 +24,7 @@ import { PrincipalInterestPie } from "@/components/charts/principal-interest-pie
 import { PaymentBreakdownChart } from "@/components/charts/payment-breakdown";
 import { ExcelExportButton } from "@/components/loans/excel-export-button";
 import { StatusBadge } from "@/components/ui/status-badge";
-import type { LoanRow } from "@/lib/loans/schema";
+import type { LoanRow, LoanExtraPayment } from "@/lib/loans/schema";
 
 const loanQuery = (id: string) =>
   queryOptions({ queryKey: ["loan", id], queryFn: () => getLoan({ data: { id } }) });
@@ -52,9 +53,18 @@ function LoanSummaryPage() {
   const { id } = Route.useParams();
   const { data } = useSuspenseQuery(loanQuery(id));
   const loan = data.loan as LoanRow;
+  const extraPayments = (data.extraPayments ?? []) as LoanExtraPayment[];
   const navigate = useNavigate();
   const qc = useQueryClient();
   const deleteFn = useServerFn(deleteLoan);
+
+  const customExtraPaymentsRecord = useMemo(() => {
+    const record: Record<number, number> = {};
+    for (const ep of extraPayments) {
+      record[ep.payment_no] = Number(ep.amount);
+    }
+    return record;
+  }, [extraPayments]);
 
   const summary = generateSchedule({
     borrowedAmount: Number(loan.borrowed_amount),
@@ -64,6 +74,7 @@ function LoanSummaryPage() {
     extraPayment: Number(loan.extra_payment ?? 0),
     balloonDate: loan.balloon_date,
     balloonAmount: loan.balloon_amount ? Number(loan.balloon_amount) : null,
+    customExtraPayments: customExtraPaymentsRecord,
   });
 
   return (
@@ -93,7 +104,7 @@ function LoanSummaryPage() {
           >
             <FileSpreadsheet className="h-4 w-4" /> View schedule
           </Link>
-          <ExcelExportButton loan={loan} />
+          <ExcelExportButton loan={loan} customExtraPayments={customExtraPaymentsRecord} />
           <button
             onClick={async () => {
               if (!confirm("Delete this loan?")) return;

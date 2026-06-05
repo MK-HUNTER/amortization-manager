@@ -12,6 +12,7 @@ export interface LoanInput {
   extraPayment?: number;
   balloonDate?: string | null;
   balloonAmount?: number | null;
+  customExtraPayments?: Record<number, number>;
 }
 
 export interface PaymentRow {
@@ -31,6 +32,7 @@ export interface ScheduleSummary {
   payoffMonths: number;
   payoffDate: string;
   schedule: PaymentRow[];
+  balloonAmount?: number | null;
 }
 
 const round = (n: number) => Math.round(n * 100) / 100;
@@ -51,7 +53,7 @@ export function generateSchedule(input: LoanInput): ScheduleSummary {
     startDate,
     extraPayment = 0,
     balloonDate = null,
-    balloonAmount = null,
+    customExtraPayments = {},
   } = input;
 
   const monthlyRate = interestRate / 12 / 100;
@@ -65,6 +67,7 @@ export function generateSchedule(input: LoanInput): ScheduleSummary {
   let totalPayment = 0;
   let month = 1;
   const safetyCap = Math.max(tenureMonths * 2, 720);
+  let calculatedBalloonAmount: number | null = null;
 
   while (balance > 0.5 && month <= safetyCap) {
     const date = formatISO(addMonths(start, month - 1), { representation: "date" });
@@ -75,19 +78,19 @@ export function generateSchedule(input: LoanInput): ScheduleSummary {
     let extra = 0;
     if (extraPayment > 0) {
       extra = Math.min(extraPayment, balance - principal);
-      if (extra < 0) extra = 0;
     }
+    const customExtra = customExtraPayments[month] ?? 0;
+    if (customExtra > 0) {
+      const maxCustomExtra = Math.max(0, balance - principal - extra);
+      const appliedCustomExtra = Math.min(customExtra, maxCustomExtra);
+      extra += appliedCustomExtra;
+    }
+    if (extra < 0) extra = 0;
 
     let balloon = 0;
-    if (balloonDate && balloonAmount && date >= balloonDate) {
-      // Apply balloon once on first qualifying month
-      const alreadyApplied = schedule.some(
-        (r) => r.date >= balloonDate && (r as PaymentRow).extra >= balloonAmount,
-      );
-      if (!alreadyApplied) {
-        balloon = Math.min(balloonAmount, balance - principal - extra);
-        if (balloon < 0) balloon = 0;
-      }
+    if (balloonDate && date >= balloonDate) {
+      balloon = Math.max(0, balance - principal - extra);
+      calculatedBalloonAmount = round(balloon);
     }
 
     const emiPaid = principal + interest;
@@ -116,5 +119,6 @@ export function generateSchedule(input: LoanInput): ScheduleSummary {
     payoffMonths: schedule.length,
     payoffDate: schedule.at(-1)?.date ?? startDate,
     schedule,
+    balloonAmount: calculatedBalloonAmount,
   };
 }

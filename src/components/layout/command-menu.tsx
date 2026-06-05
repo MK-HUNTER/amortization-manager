@@ -48,7 +48,7 @@ export function CommandMenu() {
       <CommandInput placeholder="Type a command or search loans..." />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
-        
+
         {loans.length > 0 && (
           <CommandGroup heading="Loans">
             {loans.map((loan) => (
@@ -68,7 +68,7 @@ export function CommandMenu() {
         )}
 
         <CommandSeparator />
-        
+
         <CommandGroup heading="Navigation">
           <CommandItem
             value="Dashboard Home Overview"

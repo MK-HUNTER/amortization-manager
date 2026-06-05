@@ -34,7 +34,6 @@ export function Topbar() {
           </kbd>
         </button>
 
-
         <div className="ml-auto flex items-center gap-2 sm:gap-3">
           <div className="hidden text-right md:block">
             <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Today</div>

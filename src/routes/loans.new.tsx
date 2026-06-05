@@ -74,7 +74,6 @@ function AddLoanPage() {
       startDate: watched.start_date || today,
       extraPayment: Number(watched.extra_payment) || 0,
       balloonDate: watched.balloon_date || null,
-      balloonAmount: Number(watched.balloon_amount) || null,
     });
   }, [watched, today]);
 
@@ -89,10 +88,7 @@ function AddLoanPage() {
         tenure_months: Number(values.tenure_months),
         start_date: values.start_date,
         balloon_date: values.balloon_date || null,
-        balloon_amount:
-          values.balloon_amount && !Number.isNaN(Number(values.balloon_amount))
-            ? Number(values.balloon_amount)
-            : null,
+        balloon_amount: preview?.balloonAmount ?? null,
         extra_payment:
           values.extra_payment && !Number.isNaN(Number(values.extra_payment))
             ? Number(values.extra_payment)
@@ -228,14 +224,19 @@ function AddLoanPage() {
               <Field label="Balloon date">
                 <input type="date" className={inputCls(false)} {...register("balloon_date")} />
               </Field>
-              <Field label="Balloon amount">
+              <Field label="Balloon amount (system calculated)">
                 <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  className={inputCls(false)}
-                  placeholder="0"
-                  {...register("balloon_amount")}
+                  type="text"
+                  readOnly
+                  disabled
+                  className={cn(inputCls(false), "bg-muted/50 cursor-not-allowed opacity-80")}
+                  value={
+                    watched.balloon_date
+                      ? preview?.balloonAmount !== undefined && preview?.balloonAmount !== null
+                        ? currency(preview.balloonAmount)
+                        : "No balloon payment (fully paid off)"
+                      : "Not applicable"
+                  }
                 />
               </Field>
             </div>
