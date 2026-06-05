@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, BookOpen, Lock, Mail, Eye, EyeOff, ShieldAlert } from "lucide-react";
+import { Sparkles, BookOpen, Lock, Mail, Eye, EyeOff, ShieldAlert, User2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -24,6 +24,7 @@ function LoginPage() {
   const navigate = useNavigate();
   const [mode, setMode] = useState<AuthMode>("signin");
   const [email, setEmail] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -37,6 +38,11 @@ function LoginPage() {
     // Basic Validations
     if (!email || !password) {
       setErrorMsg("Please fill in all required fields.");
+      return;
+    }
+
+    if (mode === "signup" && !displayName) {
+      setErrorMsg("Please enter your display name.");
       return;
     }
 
@@ -66,6 +72,12 @@ function LoginPage() {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            data: {
+              display_name: displayName,
+              full_name: displayName,
+            },
+          },
         });
 
         if (error) throw error;
@@ -159,6 +171,36 @@ function LoginPage() {
                 >
                   <ShieldAlert className="h-4 w-4 shrink-0 mt-0.5" />
                   <div className="leading-relaxed">{errorMsg}</div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Display Name Field (Only in Sign Up Mode) */}
+            <AnimatePresence>
+              {mode === "signup" && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="space-y-1 overflow-hidden"
+                >
+                  <label className="block text-xs font-semibold text-muted-foreground">
+                    Display Name
+                  </label>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                      <User2 className="h-4 w-4 text-muted-foreground/60" />
+                    </span>
+                    <input
+                      type="text"
+                      required
+                      placeholder="John Doe"
+                      disabled={loading}
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      className="h-10 w-full rounded-xl border border-input bg-background/50 pl-10 pr-3 text-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 transition-all disabled:opacity-50"
+                    />
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
