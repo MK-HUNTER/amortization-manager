@@ -137,7 +137,7 @@ export const updateLoan = createServerFn({ method: "POST" })
         balloonDate: merged.balloon_date,
         customExtraPayments: customExtraPaymentsRecord,
       });
-      calculatedBalloonAmount = summary.balloonAmount;
+      calculatedBalloonAmount = summary.balloonAmount ?? null;
     }
 
     const finalPatch = {

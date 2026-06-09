@@ -5,6 +5,17 @@ import { useEffect, useState } from "react";
 import { useUIStore } from "@/store/ui-store";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export function Topbar() {
   const { toggleSidebar, theme, toggleTheme, setCommandMenuOpen } = useUIStore();
@@ -96,23 +107,44 @@ export function Topbar() {
               <div className="text-[10px] text-muted-foreground leading-tight">Admin workspace</div>
             </div>
           </div>
-          <button
-            onClick={async () => {
-              if (confirm("Sign out from Amortix?")) {
-                const { error } = await supabase.auth.signOut();
-                if (error) {
-                  toast.error(error.message);
-                } else {
-                  toast.success("Signed out successfully");
-                }
-              }
-            }}
-            className="rounded-lg p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
-            title="Sign Out"
-            aria-label="Sign Out"
-          >
-            <LogOut className="h-4.5 w-4.5" />
-          </button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <button
+                className="rounded-lg p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors cursor-pointer"
+                title="Sign Out"
+                aria-label="Sign Out"
+              >
+                <LogOut className="h-4.5 w-4.5" />
+              </button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="glass-card border border-border/80 rounded-2xl max-w-sm p-6 bg-card/90 backdrop-blur-xl">
+              <AlertDialogHeader>
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-destructive/10 text-destructive mb-2">
+                  <LogOut className="h-6 w-6" />
+                </div>
+                <AlertDialogTitle className="text-xl font-bold font-display text-foreground">Sign Out</AlertDialogTitle>
+                <AlertDialogDescription className="text-sm text-muted-foreground leading-relaxed">
+                  Are you sure you want to sign out from Amortix? You will need to log back in to access your loan schedules.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter className="mt-6 flex gap-2">
+                <AlertDialogCancel className="flex-1 rounded-xl cursor-pointer hover:bg-muted font-medium transition-all">Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={async () => {
+                    const { error } = await supabase.auth.signOut();
+                    if (error) {
+                      toast.error(error.message);
+                    } else {
+                      toast.success("Signed out successfully");
+                    }
+                  }}
+                  className="flex-1 rounded-xl bg-destructive hover:bg-destructive/95 hover:shadow-glow text-white font-medium transition-all cursor-pointer"
+                >
+                  Sign Out
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
     </header>

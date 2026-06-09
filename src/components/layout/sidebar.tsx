@@ -9,6 +9,7 @@ import {
   Sparkles,
   ChevronLeft,
   ChevronRight,
+  TrendingUp,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useUIStore } from "@/store/ui-store";
@@ -20,6 +21,7 @@ const nav = [
   { to: "/loans/new", label: "Add New Loan", icon: PlusCircle },
   { to: "/summary", label: "Loan Summary", icon: FileText },
   { to: "/reports", label: "Reports", icon: BarChart3 },
+  { to: "/analytics", label: "Analytics & Simulator", icon: TrendingUp },
 ] as const;
 
 export function Sidebar() {

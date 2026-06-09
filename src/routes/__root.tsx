@@ -13,6 +13,7 @@ import { type ReactNode, useState, useEffect } from "react";
 import { Toaster } from "sonner";
 import { AppShell } from "@/components/layout/app-shell";
 import { CommandMenu } from "@/components/layout/command-menu";
+import { ChatBotWidget } from "@/components/layout/chatbot-widget";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session } from "@supabase/supabase-js";
 
@@ -179,6 +180,7 @@ function RootComponent() {
       ) : (
         <AppShell>
           <Outlet />
+          <ChatBotWidget />
         </AppShell>
       )}
       <Toaster position="top-right" richColors closeButton theme="system" />

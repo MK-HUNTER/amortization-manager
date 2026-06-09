@@ -23,80 +23,97 @@ type AuthMode = "signin" | "signup";
 function LoginPage() {
   const navigate = useNavigate();
   const [mode, setMode] = useState<AuthMode>("signin");
-  const [email, setEmail] = useState("");
-  const [displayName, setDisplayName] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Sign In States
+  const [signInEmail, setSignInEmail] = useState("");
+  const [signInPassword, setSignInPassword] = useState("");
+  const [showSignInPassword, setShowSignInPassword] = useState(false);
+  const [signInErrorMsg, setSignInErrorMsg] = useState<string | null>(null);
+
+  // Sign Up States
+  const [signUpDisplayName, setSignUpDisplayName] = useState("");
+  const [signUpEmail, setSignUpEmail] = useState("");
+  const [signUpPassword, setSignUpPassword] = useState("");
+  const [signUpConfirmPassword, setSignUpConfirmPassword] = useState("");
+  const [showSignUpPassword, setShowSignUpPassword] = useState(false);
+  const [signUpErrorMsg, setSignUpErrorMsg] = useState<string | null>(null);
+
+  const handleSignInSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMsg(null);
+    setSignInErrorMsg(null);
 
-    // Basic Validations
-    if (!email || !password) {
-      setErrorMsg("Please fill in all required fields.");
-      return;
-    }
-
-    if (mode === "signup" && !displayName) {
-      setErrorMsg("Please enter your display name.");
-      return;
-    }
-
-    if (mode === "signup" && password !== confirmPassword) {
-      setErrorMsg("Passwords do not match.");
-      return;
-    }
-
-    if (mode === "signup" && password.length < 6) {
-      setErrorMsg("Password must be at least 6 characters long.");
+    if (!signInEmail || !signInPassword) {
+      setSignInErrorMsg("Please fill in all required fields.");
       return;
     }
 
     setLoading(true);
-
     try {
-      if (mode === "signin") {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: signInEmail,
+        password: signInPassword,
+      });
 
-        if (error) throw error;
-        toast.success("Successfully logged in!");
+      if (error) throw error;
+      toast.success("Successfully logged in!");
+      navigate({ to: "/" });
+    } catch (err) {
+      const error = err as Error;
+      setSignInErrorMsg(error.message || "An authentication error occurred.");
+      toast.error(error.message || "Failed to authenticate.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignUpSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSignUpErrorMsg(null);
+
+    if (!signUpEmail || !signUpPassword || !signUpConfirmPassword || !signUpDisplayName) {
+      setSignUpErrorMsg("Please fill in all required fields.");
+      return;
+    }
+
+    if (signUpPassword !== signUpConfirmPassword) {
+      setSignUpErrorMsg("Passwords do not match.");
+      return;
+    }
+
+    if (signUpPassword.length < 6) {
+      setSignUpErrorMsg("Password must be at least 6 characters long.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: signUpEmail,
+        password: signUpPassword,
+        options: {
+          data: {
+            display_name: signUpDisplayName,
+            full_name: signUpDisplayName,
+          },
+        },
+      });
+
+      if (error) throw error;
+
+      if (data.session) {
+        toast.success("Successfully registered and logged in!");
         navigate({ to: "/" });
       } else {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              display_name: displayName,
-              full_name: displayName,
-            },
-          },
-        });
-
-        if (error) throw error;
-
-        // Note: Supabase sign up might auto-login or request email verification
-        if (data.session) {
-          toast.success("Successfully registered and logged in!");
-          navigate({ to: "/" });
-        } else {
-          toast.success("Registration successful! Please check your email for verification link.");
-          setMode("signin");
-          setPassword("");
-          setConfirmPassword("");
-        }
+        toast.success("Registration successful! Please check your email for verification link.");
+        setMode("signin");
+        setSignUpPassword("");
+        setSignUpConfirmPassword("");
       }
     } catch (err) {
       const error = err as Error;
-      setErrorMsg(error.message || "An authentication error occurred.");
-      toast.error(error.message || "Failed to authenticate.");
+      setSignUpErrorMsg(error.message || "A registration error occurred.");
+      toast.error(error.message || "Failed to register.");
     } finally {
       setLoading(false);
     }
@@ -105,107 +122,55 @@ function LoginPage() {
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 surface-mesh">
       {/* Background Blobs for Visual Aesthetics */}
-      <div className="absolute top-1/4 left-1/4 h-96 w-96 rounded-full bg-primary/10 blur-[120px]" />
-      <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-indigo-500/10 blur-[120px]" />
+      <div className="absolute top-1/4 left-1/4 h-96 w-96 rounded-full bg-primary/15 blur-[120px]" />
+      <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-indigo-500/15 blur-[120px]" />
 
-      <div className="relative w-full max-w-md">
-        {/* Logo / Branding Header */}
-        <div className="flex flex-col items-center space-y-2 mb-8 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-primary shadow-glow">
-            <Sparkles className="h-6 w-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-extrabold tracking-tight font-display text-foreground">
-              Amortix
-            </h1>
-            <p className="mt-1 text-xs uppercase tracking-[0.2em] text-muted-foreground font-semibold">
-              Treasury Loan Management Suite
-            </p>
-          </div>
-        </div>
+      {/* Main Double Slider Card */}
+      <div
+        className={`auth-slider-container glass-card rounded-3xl border border-border/60 bg-card/45 shadow-glow ${
+          mode === "signup" ? "right-panel-active" : ""
+        }`}
+      >
+        {/* 1. SIGN UP FORM PANEL */}
+        <div className="auth-form-container auth-sign-up-container">
+          <form onSubmit={handleSignUpSubmit} className="flex flex-col space-y-3.5 justify-center h-full">
+            <div className="text-center mb-2">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-primary shadow-glow mx-auto mb-2.5 md:hidden">
+                <Sparkles className="h-5 w-5 text-white" />
+              </div>
+              <h2 className="text-2xl font-extrabold tracking-tight text-foreground font-display">
+                Create Account
+              </h2>
+              <p className="text-xs text-muted-foreground mt-1">
+                Register using your corporate email address
+              </p>
+            </div>
 
-        {/* Main Glassmorphic Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="glass-card overflow-hidden rounded-3xl border border-border/60 bg-card/45 p-6 shadow-glow sm:p-8"
-        >
-          {/* Form Tabs */}
-          <div className="flex rounded-xl bg-muted/50 p-1 mb-6 border border-border/30">
-            <button
-              onClick={() => {
-                setMode("signin");
-                setErrorMsg(null);
-              }}
-              className={`flex-1 rounded-lg py-2.5 text-xs font-semibold tracking-wide transition-all ${
-                mode === "signin"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Sign In
-            </button>
-            <button
-              onClick={() => {
-                setMode("signup");
-                setErrorMsg(null);
-              }}
-              className={`flex-1 rounded-lg py-2.5 text-xs font-semibold tracking-wide transition-all ${
-                mode === "signup"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Create Account
-            </button>
-          </div>
+            {signUpErrorMsg && (
+              <div className="flex items-start gap-2.5 rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-xs text-destructive">
+                <ShieldAlert className="h-4 w-4 shrink-0 mt-0.5" />
+                <div className="leading-relaxed">{signUpErrorMsg}</div>
+              </div>
+            )}
 
-          {/* Form Actions */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <AnimatePresence mode="wait">
-              {errorMsg && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="flex items-start gap-2.5 rounded-xl border border-destructive/20 bg-destructive/5 p-3.5 text-xs text-destructive"
-                >
-                  <ShieldAlert className="h-4 w-4 shrink-0 mt-0.5" />
-                  <div className="leading-relaxed">{errorMsg}</div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Display Name Field (Only in Sign Up Mode) */}
-            <AnimatePresence>
-              {mode === "signup" && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="space-y-1 overflow-hidden"
-                >
-                  <label className="block text-xs font-semibold text-muted-foreground">
-                    Display Name
-                  </label>
-                  <div className="relative">
-                    <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                      <User2 className="h-4 w-4 text-muted-foreground/60" />
-                    </span>
-                    <input
-                      type="text"
-                      required
-                      placeholder="John Doe"
-                      disabled={loading}
-                      value={displayName}
-                      onChange={(e) => setDisplayName(e.target.value)}
-                      className="h-10 w-full rounded-xl border border-input bg-background/50 pl-10 pr-3 text-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 transition-all disabled:opacity-50"
-                    />
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {/* Display Name Field */}
+            <div className="space-y-1">
+              <label className="block text-xs font-semibold text-muted-foreground">Display Name</label>
+              <div className="relative">
+                <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                  <User2 className="h-4 w-4 text-muted-foreground/60" />
+                </span>
+                <input
+                  type="text"
+                  required
+                  placeholder="John Doe"
+                  disabled={loading}
+                  value={signUpDisplayName}
+                  onChange={(e) => setSignUpDisplayName(e.target.value)}
+                  className="h-10 w-full rounded-xl border border-input bg-background/50 pl-10 pr-3 text-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 transition-all disabled:opacity-50"
+                />
+              </div>
+            </div>
 
             {/* Email Field */}
             <div className="space-y-1">
@@ -219,8 +184,8 @@ function LoginPage() {
                   required
                   placeholder="name@company.com"
                   disabled={loading}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={signUpEmail}
+                  onChange={(e) => setSignUpEmail(e.target.value)}
                   className="h-10 w-full rounded-xl border border-input bg-background/50 pl-10 pr-3 text-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 transition-all disabled:opacity-50"
                 />
               </div>
@@ -234,70 +199,216 @@ function LoginPage() {
                   <Lock className="h-4 w-4 text-muted-foreground/60" />
                 </span>
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type={showSignUpPassword ? "text" : "password"}
                   required
-                  placeholder={mode === "signin" ? "••••••••" : "At least 6 characters"}
+                  placeholder="At least 6 characters"
                   disabled={loading}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  value={signUpPassword}
+                  onChange={(e) => setSignUpPassword(e.target.value)}
                   className="h-10 w-full rounded-xl border border-input bg-background/50 pl-10 pr-10 text-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 transition-all disabled:opacity-50"
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => setShowSignUpPassword(!showSignUpPassword)}
                   className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground/60 hover:text-foreground"
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showSignUpPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
 
-            {/* Confirm Password (Only in Sign Up Mode) */}
-            <AnimatePresence>
-              {mode === "signup" && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="space-y-1 overflow-hidden"
-                >
-                  <label className="block text-xs font-semibold text-muted-foreground">
-                    Confirm Password
-                  </label>
-                  <div className="relative">
-                    <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                      <Lock className="h-4 w-4 text-muted-foreground/60" />
-                    </span>
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      required
-                      placeholder="••••••••"
-                      disabled={loading}
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="h-10 w-full rounded-xl border border-input bg-background/50 pl-10 pr-3 text-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 transition-all disabled:opacity-50"
-                    />
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {/* Confirm Password */}
+            <div className="space-y-1">
+              <label className="block text-xs font-semibold text-muted-foreground">Confirm Password</label>
+              <div className="relative">
+                <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                  <Lock className="h-4 w-4 text-muted-foreground/60" />
+                </span>
+                <input
+                  type={showSignUpPassword ? "text" : "password"}
+                  required
+                  placeholder="••••••••"
+                  disabled={loading}
+                  value={signUpConfirmPassword}
+                  onChange={(e) => setSignUpConfirmPassword(e.target.value)}
+                  className="h-10 w-full rounded-xl border border-input bg-background/50 pl-10 pr-3 text-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 transition-all disabled:opacity-50"
+                />
+              </div>
+            </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className="mt-6 flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-gradient-primary text-sm font-semibold text-white shadow-card transition-all hover:shadow-glow hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-card"
+              className="mt-2 flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-gradient-primary text-sm font-semibold text-white shadow-card transition-all hover:shadow-glow hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-card"
             >
               {loading ? (
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-              ) : mode === "signin" ? (
-                "Sign In"
               ) : (
                 "Create Account"
               )}
             </button>
+
+            {/* Mobile-only switcher link */}
+            <div className="text-center mt-3 md:hidden">
+              <p className="text-xs text-muted-foreground">
+                Already have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode("signin");
+                    setSignUpErrorMsg(null);
+                  }}
+                  className="font-semibold text-primary hover:underline"
+                >
+                  Sign In
+                </button>
+              </p>
+            </div>
           </form>
-        </motion.div>
+        </div>
+
+        {/* 2. SIGN IN FORM PANEL */}
+        <div className="auth-form-container auth-sign-in-container">
+          <form onSubmit={handleSignInSubmit} className="flex flex-col space-y-4 justify-center h-full">
+            <div className="text-center mb-2">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-primary shadow-glow mx-auto mb-2.5 md:hidden">
+                <Sparkles className="h-5 w-5 text-white" />
+              </div>
+              <h2 className="text-2xl font-extrabold tracking-tight text-foreground font-display">
+                Sign In
+              </h2>
+              <p className="text-xs text-muted-foreground mt-1">
+                Enter your credentials to enter Amortix
+              </p>
+            </div>
+
+            {signInErrorMsg && (
+              <div className="flex items-start gap-2.5 rounded-xl border border-destructive/20 bg-destructive/5 p-3.5 text-xs text-destructive">
+                <ShieldAlert className="h-4 w-4 shrink-0 mt-0.5" />
+                <div className="leading-relaxed">{signInErrorMsg}</div>
+              </div>
+            )}
+
+            {/* Email Field */}
+            <div className="space-y-1">
+              <label className="block text-xs font-semibold text-muted-foreground">Email</label>
+              <div className="relative">
+                <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                  <Mail className="h-4 w-4 text-muted-foreground/60" />
+                </span>
+                <input
+                  type="email"
+                  required
+                  placeholder="name@company.com"
+                  disabled={loading}
+                  value={signInEmail}
+                  onChange={(e) => setSignInEmail(e.target.value)}
+                  className="h-10 w-full rounded-xl border border-input bg-background/50 pl-10 pr-3 text-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 transition-all disabled:opacity-50"
+                />
+              </div>
+            </div>
+
+            {/* Password Field */}
+            <div className="space-y-1">
+              <label className="block text-xs font-semibold text-muted-foreground">Password</label>
+              <div className="relative">
+                <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                  <Lock className="h-4 w-4 text-muted-foreground/60" />
+                </span>
+                <input
+                  type={showSignInPassword ? "text" : "password"}
+                  required
+                  placeholder="••••••••"
+                  disabled={loading}
+                  value={signInPassword}
+                  onChange={(e) => setSignInPassword(e.target.value)}
+                  className="h-10 w-full rounded-xl border border-input bg-background/50 pl-10 pr-10 text-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30 transition-all disabled:opacity-50"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowSignInPassword(!showSignInPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground/60 hover:text-foreground"
+                >
+                  {showSignInPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-2 flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-gradient-primary text-sm font-semibold text-white shadow-card transition-all hover:shadow-glow hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-card"
+            >
+              {loading ? (
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              ) : (
+                "Sign In"
+              )}
+            </button>
+
+            {/* Mobile-only switcher link */}
+            <div className="text-center mt-3 md:hidden">
+              <p className="text-xs text-muted-foreground">
+                Don't have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode("signup");
+                    setSignInErrorMsg(null);
+                  }}
+                  className="font-semibold text-primary hover:underline"
+                >
+                  Create Account
+                </button>
+              </p>
+            </div>
+          </form>
+        </div>
+
+        {/* 3. DESKTOP SLIDING OVERLAY CONTAINER */}
+        <div className="auth-overlay-container hidden md:block">
+          <div className="auth-overlay">
+            {/* Left Overlay panel (displays when signup mode is active, switch to signin) */}
+            <div className="auth-overlay-panel auth-overlay-left">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md shadow-glow mb-4 border border-white/20">
+                <Sparkles className="h-6 w-6 text-white" />
+              </div>
+              <h1 className="text-3xl font-extrabold font-display text-white mb-2">Welcome Back!</h1>
+              <p className="text-sm text-white/80 leading-relaxed mb-6 max-w-[280px]">
+                To stay connected with your amortization analysis tools, please log in with your credentials.
+              </p>
+              <button
+                onClick={() => {
+                  setMode("signin");
+                  setSignUpErrorMsg(null);
+                }}
+                className="px-8 py-2.5 rounded-xl border border-white text-sm font-semibold text-white bg-transparent hover:bg-white/15 active:scale-95 transition-all shadow-soft cursor-pointer"
+              >
+                Sign In
+              </button>
+            </div>
+
+            {/* Right Overlay panel (displays when signin mode is active, switch to signup) */}
+            <div className="auth-overlay-panel auth-overlay-right">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md shadow-glow mb-4 border border-white/20">
+                <Sparkles className="h-6 w-6 text-white" />
+              </div>
+              <h1 className="text-3xl font-extrabold font-display text-white mb-2">New to Amortix?</h1>
+              <p className="text-sm text-white/80 leading-relaxed mb-6 max-w-[280px]">
+                Set up your workspace and start managing corporate loan amortization schedules in seconds.
+              </p>
+              <button
+                onClick={() => {
+                  setMode("signup");
+                  setSignInErrorMsg(null);
+                }}
+                className="px-8 py-2.5 rounded-xl border border-white text-sm font-semibold text-white bg-transparent hover:bg-white/15 active:scale-95 transition-all shadow-soft cursor-pointer"
+              >
+                Create Account
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
