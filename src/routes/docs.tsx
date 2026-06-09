@@ -170,8 +170,8 @@ function DocsPage() {
             <div>
               <h4 className="font-semibold text-foreground">Dynamic Calculations</h4>
               <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                Calculates precise schedules supporting month-specific custom prepayments, reducing balance types, flat
-                interest types, and customized balloon maturities.
+                Calculates precise schedules supporting month-specific custom prepayments, reducing
+                balance types, flat interest types, and customized balloon maturities.
               </p>
             </div>
           </div>
@@ -505,12 +505,16 @@ function DocsPage() {
                   Extra Payments & Month-Specific Prepayments
                 </h4>
                 <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
-                  Adding extra principal payments monthly lowers the outstanding balance faster.
-                  In addition to standard recurring monthly prepayments, Amortix supports <strong>month-specific custom prepayments</strong>.
-                  Users can apply unique, one-off additional payments to any month of the schedule (excluding the final month).
+                  Adding extra principal payments monthly lowers the outstanding balance faster. In
+                  addition to standard recurring monthly prepayments, Amortix supports{" "}
+                  <strong>month-specific custom prepayments</strong>. Users can apply unique,
+                  one-off additional payments to any month of the schedule (excluding the final
+                  month).
                 </p>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  The amortization engine dynamically calculates interest savings, shifts payoff dates forward, and recalibrates the final balloon maturity amounts in real-time based on these combined extra payment schedules.
+                  The amortization engine dynamically calculates interest savings, shifts payoff
+                  dates forward, and recalibrates the final balloon maturity amounts in real-time
+                  based on these combined extra payment schedules.
                 </p>
               </section>
             </div>
@@ -788,7 +792,9 @@ function DocsPage() {
                     </td>
                   </tr>
                   <tr className="hover:bg-accent/30">
-                    <td className="py-3.5 pr-4 font-mono text-xs text-primary font-bold">loan_id</td>
+                    <td className="py-3.5 pr-4 font-mono text-xs text-primary font-bold">
+                      loan_id
+                    </td>
                     <td className="py-3.5 px-4 font-mono text-xs">uuid</td>
                     <td className="py-3.5 px-4 text-xs text-muted-foreground">
                       NOT NULL, REFERENCES loans(id) ON DELETE CASCADE
@@ -798,13 +804,16 @@ function DocsPage() {
                     </td>
                   </tr>
                   <tr className="hover:bg-accent/30">
-                    <td className="py-3.5 pr-4 font-mono text-xs text-primary font-bold">payment_no</td>
+                    <td className="py-3.5 pr-4 font-mono text-xs text-primary font-bold">
+                      payment_no
+                    </td>
                     <td className="py-3.5 px-4 font-mono text-xs">integer</td>
                     <td className="py-3.5 px-4 text-xs text-muted-foreground">
                       NOT NULL, CHECK (payment_no &gt; 0)
                     </td>
                     <td className="py-3.5 pl-4 text-xs">
-                      The specific month number in the schedule (1-indexed) where the prepayment is applied.
+                      The specific month number in the schedule (1-indexed) where the prepayment is
+                      applied.
                     </td>
                   </tr>
                   <tr className="hover:bg-accent/30">
@@ -818,7 +827,9 @@ function DocsPage() {
                     </td>
                   </tr>
                   <tr className="hover:bg-accent/30">
-                    <td className="py-3.5 pr-4 font-mono text-xs text-primary font-bold">created_at</td>
+                    <td className="py-3.5 pr-4 font-mono text-xs text-primary font-bold">
+                      created_at
+                    </td>
                     <td className="py-3.5 px-4 font-mono text-xs">timestamptz</td>
                     <td className="py-3.5 px-4 text-xs text-muted-foreground">
                       NOT NULL, DEFAULT now()
@@ -828,7 +839,9 @@ function DocsPage() {
                     </td>
                   </tr>
                   <tr className="hover:bg-accent/30">
-                    <td className="py-3.5 pr-4 font-mono text-xs text-primary font-bold">updated_at</td>
+                    <td className="py-3.5 pr-4 font-mono text-xs text-primary font-bold">
+                      updated_at
+                    </td>
                     <td className="py-3.5 px-4 font-mono text-xs">timestamptz</td>
                     <td className="py-3.5 px-4 text-xs text-muted-foreground">
                       NOT NULL, DEFAULT now()

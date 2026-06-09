@@ -15,7 +15,7 @@ import type { PaymentRow } from "@/lib/loans/amortization";
 export function PaymentBreakdownChart({ data }: { data: PaymentRow[] }) {
   const limited = data.slice(0, 24);
   return (
-    <ResponsiveContainer width="100%" height={280}>
+    <ResponsiveContainer width="100%" height={280} debounce={100}>
       <BarChart data={limited} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
         <XAxis

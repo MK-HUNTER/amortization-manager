@@ -13,7 +13,7 @@ export function PrincipalInterestPie({
     { name: "Interest", value: interest, color: "var(--color-chart-3)" },
   ];
   return (
-    <ResponsiveContainer width="100%" height={260}>
+    <ResponsiveContainer width="100%" height={260} debounce={100}>
       <PieChart>
         <Tooltip
           contentStyle={{

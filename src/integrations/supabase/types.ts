@@ -65,6 +65,7 @@ export type Database = {
       loan_extra_payments: {
         Row: {
           amount: number;
+          comment: string | null;
           created_at: string;
           id: string;
           loan_id: string;
@@ -73,6 +74,7 @@ export type Database = {
         };
         Insert: {
           amount: number;
+          comment?: string | null;
           created_at?: string;
           id?: string;
           loan_id: string;
@@ -81,6 +83,7 @@ export type Database = {
         };
         Update: {
           amount?: number;
+          comment?: string | null;
           created_at?: string;
           id?: string;
           loan_id?: string;
@@ -94,7 +97,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "loans";
             referencedColumns: ["id"];
-          }
+          },
         ];
       };
     };

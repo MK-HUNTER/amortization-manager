@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-ro
 import { queryOptions, useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
-import { ArrowLeft, Plus, Edit2, Check, X } from "lucide-react";
+import { ArrowLeft, Plus, Edit2, Check, X, MessageSquare } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
@@ -37,12 +37,23 @@ function SchedulePage() {
 
   const [activeEditMonth, setActiveEditMonth] = useState<number | null>(null);
   const [editAmount, setEditAmount] = useState("");
+  const [editComment, setEditComment] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
   const customExtraPaymentsRecord = useMemo(() => {
     const record: Record<number, number> = {};
     for (const ep of extraPayments) {
       record[ep.payment_no] = Number(ep.amount);
+    }
+    return record;
+  }, [extraPayments]);
+
+  const customExtraCommentsRecord = useMemo(() => {
+    const record: Record<number, string> = {};
+    for (const ep of extraPayments) {
+      if (ep.comment) {
+        record[ep.payment_no] = ep.comment;
+      }
     }
     return record;
   }, [extraPayments]);
@@ -64,6 +75,7 @@ function SchedulePage() {
       toast.error("Please enter a valid positive number");
       return;
     }
+    const comment = editComment.trim();
     setIsSaving(true);
     try {
       await saveExtraFn({
@@ -71,6 +83,7 @@ function SchedulePage() {
           loanId: id,
           paymentNo,
           amount,
+          comment: amount > 0 ? comment : null,
         },
       });
       await qc.invalidateQueries({ queryKey: ["loan", id] });
@@ -145,37 +158,62 @@ function SchedulePage() {
                   <td className="px-4 py-2.5 text-right">
                     <div className="flex items-center justify-end gap-1.5 group/cell">
                       {activeEditMonth === row.paymentNo ? (
-                        <div className="flex items-center gap-1">
-                          <input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            autoFocus
-                            disabled={isSaving}
-                            value={editAmount}
-                            onChange={(e) => setEditAmount(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") handleSave(row.paymentNo);
-                              if (e.key === "Escape") setActiveEditMonth(null);
-                            }}
-                            className="h-7 w-20 rounded-lg border border-input bg-background px-1.5 py-0.5 text-right text-xs focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/30"
-                          />
-                          <button
-                            onClick={() => handleSave(row.paymentNo)}
-                            disabled={isSaving}
-                            className="rounded-md p-1 text-success hover:bg-success/10 disabled:opacity-40"
-                            title="Save"
-                          >
-                            <Check className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            onClick={() => setActiveEditMonth(null)}
-                            disabled={isSaving}
-                            className="rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-40"
-                            title="Cancel"
-                          >
-                            <X className="h-3.5 w-3.5" />
-                          </button>
+                        <div className="flex flex-col gap-1.5 items-end py-1">
+                          <div className="flex items-center gap-1">
+                            <span className="text-[10px] text-muted-foreground font-medium uppercase">
+                              Amt:
+                            </span>
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              autoFocus
+                              disabled={isSaving}
+                              value={editAmount}
+                              onChange={(e) => setEditAmount(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") handleSave(row.paymentNo);
+                                if (e.key === "Escape") setActiveEditMonth(null);
+                              }}
+                              placeholder="0.00"
+                              className="h-7 w-20 rounded-lg border border-input bg-background px-1.5 py-0.5 text-right text-xs focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/30 font-medium"
+                            />
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="text-[10px] text-muted-foreground font-medium uppercase">
+                              Note:
+                            </span>
+                            <input
+                              type="text"
+                              disabled={isSaving}
+                              value={editComment}
+                              onChange={(e) => setEditComment(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") handleSave(row.paymentNo);
+                                if (e.key === "Escape") setActiveEditMonth(null);
+                              }}
+                              placeholder="Comment (optional)"
+                              className="h-7 w-32 rounded-lg border border-input bg-background px-1.5 py-0.5 text-left text-xs focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/30"
+                            />
+                          </div>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <button
+                              onClick={() => handleSave(row.paymentNo)}
+                              disabled={isSaving}
+                              className="flex items-center gap-1 rounded-md bg-success/10 hover:bg-success/20 px-2 py-0.5 text-success text-[10px] font-semibold disabled:opacity-40 transition-colors"
+                              title="Save"
+                            >
+                              <Check className="h-3 w-3" /> Save
+                            </button>
+                            <button
+                              onClick={() => setActiveEditMonth(null)}
+                              disabled={isSaving}
+                              className="flex items-center gap-1 rounded-md bg-accent hover:bg-accent/80 px-2 py-0.5 text-muted-foreground hover:text-foreground text-[10px] font-medium disabled:opacity-40 transition-colors"
+                              title="Cancel"
+                            >
+                              <X className="h-3 w-3" /> Cancel
+                            </button>
+                          </div>
                         </div>
                       ) : (
                         <>
@@ -192,6 +230,17 @@ function SchedulePage() {
                                 (Custom: {currencyDetail(customExtraPaymentsRecord[row.paymentNo])})
                               </div>
                             )}
+                            {customExtraCommentsRecord[row.paymentNo] && (
+                              <div className="mt-1 flex items-start justify-end gap-1 text-[10.5px] text-muted-foreground leading-snug italic max-w-[160px] ml-auto">
+                                <MessageSquare className="h-3 w-3 text-muted-foreground/60 shrink-0 mt-0.5" />
+                                <span
+                                  className="break-words text-right"
+                                  title={customExtraCommentsRecord[row.paymentNo]}
+                                >
+                                  {customExtraCommentsRecord[row.paymentNo]}
+                                </span>
+                              </div>
+                            )}
                           </div>
                           {row.paymentNo < summary.schedule.length && (
                             <button
@@ -202,6 +251,7 @@ function SchedulePage() {
                                     ? String(customExtraPaymentsRecord[row.paymentNo])
                                     : "",
                                 );
+                                setEditComment(customExtraCommentsRecord[row.paymentNo] ?? "");
                               }}
                               className="opacity-0 group-hover/cell:opacity-100 focus:opacity-100 rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground transition-opacity"
                               title={

@@ -138,10 +138,11 @@ function LoginPage() {
                 setMode("signin");
                 setErrorMsg(null);
               }}
-              className={`flex-1 rounded-lg py-2.5 text-xs font-semibold tracking-wide transition-all ${mode === "signin"
+              className={`flex-1 rounded-lg py-2.5 text-xs font-semibold tracking-wide transition-all ${
+                mode === "signin"
                   ? "bg-background text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
-                }`}
+              }`}
             >
               Sign In
             </button>
@@ -150,10 +151,11 @@ function LoginPage() {
                 setMode("signup");
                 setErrorMsg(null);
               }}
-              className={`flex-1 rounded-lg py-2.5 text-xs font-semibold tracking-wide transition-all ${mode === "signup"
+              className={`flex-1 rounded-lg py-2.5 text-xs font-semibold tracking-wide transition-all ${
+                mode === "signup"
                   ? "bg-background text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
-                }`}
+              }`}
             >
               Create Account
             </button>
@@ -296,8 +298,6 @@ function LoginPage() {
             </button>
           </form>
         </motion.div>
-
-
       </div>
     </div>
   );

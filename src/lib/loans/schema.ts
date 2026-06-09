@@ -41,6 +41,7 @@ export interface LoanExtraPayment {
   loan_id: string;
   payment_no: number;
   amount: number;
+  comment: string | null;
   created_at: string;
   updated_at: string;
 }

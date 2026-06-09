@@ -81,11 +81,13 @@ export function Topbar() {
           </Link>
           <div className="flex items-center gap-2 rounded-xl border border-border bg-card py-1.5 pl-1.5 pr-3">
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-primary text-xs font-semibold text-white uppercase font-mono">
-              {displayName
-                ? displayName.slice(0, 2)
-                : userEmail
-                  ? userEmail.slice(0, 2)
-                  : <User2 className="h-4 w-4" />}
+              {displayName ? (
+                displayName.slice(0, 2)
+              ) : userEmail ? (
+                userEmail.slice(0, 2)
+              ) : (
+                <User2 className="h-4 w-4" />
+              )}
             </div>
             <div className="hidden sm:block">
               <div className="text-xs font-semibold leading-tight truncate max-w-[120px]">

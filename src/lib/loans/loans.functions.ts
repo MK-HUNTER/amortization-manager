@@ -171,6 +171,7 @@ export const saveCustomExtraPayment = createServerFn({ method: "POST" })
         loanId: z.string().uuid(),
         paymentNo: z.number().int().positive(),
         amount: z.number().min(0),
+        comment: z.string().trim().max(500).nullable().optional(),
       })
       .parse(d),
   )
@@ -194,19 +195,18 @@ export const saveCustomExtraPayment = createServerFn({ method: "POST" })
         .eq("payment_no", data.paymentNo);
       if (error) throw new Error(error.message);
     } else {
-      const { error } = await supabaseAdmin
-        .from("loan_extra_payments")
-        .upsert(
-          {
-            loan_id: data.loanId,
-            payment_no: data.paymentNo,
-            amount: data.amount,
-            updated_at: new Date().toISOString(),
-          },
-          {
-            onConflict: "loan_id,payment_no",
-          },
-        );
+      const { error } = await supabaseAdmin.from("loan_extra_payments").upsert(
+        {
+          loan_id: data.loanId,
+          payment_no: data.paymentNo,
+          amount: data.amount,
+          comment: data.comment || null,
+          updated_at: new Date().toISOString(),
+        },
+        {
+          onConflict: "loan_id,payment_no",
+        },
+      );
       if (error) throw new Error(error.message);
     }
 
