@@ -10,7 +10,7 @@ import {
   Wallet,
   PlusCircle,
 } from "lucide-react";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, addMonths, startOfMonth } from "date-fns";
 
 import { listLoans } from "@/lib/loans/loans.functions";
 import { calculateEmi, generateSchedule } from "@/lib/loans/amortization";
@@ -18,6 +18,8 @@ import { compactCurrency, currency, percent } from "@/lib/format";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { BalanceTrendChart } from "@/components/charts/balance-trend";
 import { PrincipalInterestPie } from "@/components/charts/principal-interest-pie";
+import { MonthlyOutflowChart, OutflowData } from "@/components/charts/monthly-outflow";
+import { LenderExposureChart, LenderData } from "@/components/charts/lender-exposure";
 import { StatusBadge } from "@/components/ui/status-badge";
 import type { LoanRow } from "@/lib/loans/schema";
 
@@ -42,6 +44,41 @@ export const Route = createFileRoute("/")({
     </div>
   ),
 });
+
+function computeLoanMetrics(loan: LoanRow, todayStr: string, currentYearStr: string) {
+  const isExpired = loan.loan_status === "paid" || loan.loan_status === "closed";
+  if (isExpired) {
+    return { outstanding: 0, remainingMonths: 0, interestPaidYTD: 0, currentRate: Number(loan.interest_rate) };
+  }
+
+  const schedule = generateSchedule({
+    borrowedAmount: Number(loan.borrowed_amount),
+    interestRate: Number(loan.interest_rate),
+    tenureMonths: Number(loan.tenure_months),
+    startDate: loan.start_date,
+    extraPayment: Number(loan.extra_payment ?? 0),
+    balloonDate: loan.balloon_date,
+    balloonAmount: loan.balloon_amount ? Number(loan.balloon_amount) : null,
+  }).schedule;
+
+  let outstanding = Number(loan.borrowed_amount);
+  let remainingMonths = Number(loan.tenure_months);
+  let interestPaidYTD = 0;
+
+  const pastPayments = schedule.filter((row) => row.date <= todayStr);
+  if (pastPayments.length > 0) {
+    const lastPayment = pastPayments[pastPayments.length - 1];
+    outstanding = lastPayment.balance;
+    remainingMonths = Math.max(0, schedule.length - pastPayments.length);
+  }
+
+  const ytdPayments = schedule.filter((row) => {
+    return row.date <= todayStr && row.date.startsWith(currentYearStr);
+  });
+  interestPaidYTD = ytdPayments.reduce((s, row) => s + row.interest, 0);
+
+  return { outstanding, remainingMonths, interestPaidYTD, currentRate: Number(loan.interest_rate) };
+}
 
 function buildAggregates(loans: LoanRow[]) {
   const totals = { principal: 0, interest: 0, emi: 0, balance: 0 };
@@ -91,48 +128,116 @@ function Dashboard() {
   const portfolio = loans.reduce((s, l) => s + Number(l.borrowed_amount), 0);
   const avgRate =
     loans.length === 0 ? 0 : loans.reduce((s, l) => s + Number(l.interest_rate), 0) / loans.length;
-  const monthlyEmi = active.reduce(
-    (s, l) =>
-      s + calculateEmi(Number(l.borrowed_amount), Number(l.interest_rate), Number(l.tenure_months)),
-    0,
-  );
+
+  const today = new Date();
+  const todayStr = format(today, "yyyy-MM-dd");
+  const currentYearStr = String(today.getFullYear());
+
+  let totalOutstanding = 0;
+  let totalInterestPaidYTD = 0;
+  let weightedRateSum = 0;
+  let weightedMaturitySum = 0;
+
+  active.forEach((l) => {
+    const m = computeLoanMetrics(l, todayStr, currentYearStr);
+    totalOutstanding += m.outstanding;
+    totalInterestPaidYTD += m.interestPaidYTD;
+    weightedRateSum += m.currentRate * m.outstanding;
+    weightedMaturitySum += (m.remainingMonths / 12) * m.outstanding;
+  });
+
+  const totalActiveOutstanding = totalOutstanding;
+  const weightedAvgRate = totalActiveOutstanding > 0 ? (weightedRateSum / totalActiveOutstanding) : avgRate;
+  const weightedAvgMaturity = totalActiveOutstanding > 0 ? (weightedMaturitySum / totalActiveOutstanding) : 0;
+
   const { trend, totals } = buildAggregates(loans);
+
+  // Generate Monthly cash outflow projection (next 12 months)
+  const currentMonthDate = startOfMonth(today);
+  const next12Months = Array.from({ length: 12 }).map((_, i) =>
+    addMonths(currentMonthDate, i)
+  );
+
+  const outflowData: OutflowData[] = next12Months.map((mDate) => {
+    const monthKey = format(mDate, "yyyy-MM");
+    const monthLabel = format(mDate, "MMM yy");
+
+    let monthPrincipal = 0;
+    let monthInterest = 0;
+
+    for (const loan of active) {
+      const summary = generateSchedule({
+        borrowedAmount: Number(loan.borrowed_amount),
+        interestRate: Number(loan.interest_rate),
+        tenureMonths: Number(loan.tenure_months),
+        startDate: loan.start_date,
+        extraPayment: Number(loan.extra_payment ?? 0),
+        balloonDate: loan.balloon_date,
+        balloonAmount: loan.balloon_amount ? Number(loan.balloon_amount) : null,
+      });
+
+      for (const row of summary.schedule) {
+        if (row.date.startsWith(monthKey)) {
+          monthPrincipal += row.principal;
+          monthInterest += row.interest;
+        }
+      }
+    }
+
+    return {
+      month: monthLabel,
+      Principal: Math.round(monthPrincipal),
+      Interest: Math.round(monthInterest),
+    };
+  });
+
+  // Calculate Lender Concentration
+  const lenderMap = new Map<string, number>();
+  for (const loan of active) {
+    const m = computeLoanMetrics(loan, todayStr, currentYearStr);
+    const bankName = loan.bank_name || "Unknown Lender";
+    lenderMap.set(bankName, (lenderMap.get(bankName) ?? 0) + m.outstanding);
+  }
+
+  const lenderData: LenderData[] = Array.from(lenderMap.entries())
+    .map(([name, value]) => ({ name, value: Math.round(value) }))
+    .sort((a, b) => b.value - a.value);
 
   const kpis = [
     {
-      label: "Total loans",
-      value: String(loans.length).padStart(2, "0"),
-      hint: "All-time records",
-      icon: Layers,
+      label: "Active Balance",
+      value: compactCurrency(totalOutstanding),
+      hint: `Across ${active.length} active loans`,
+      icon: Wallet,
       variant: "primary" as const,
     },
     {
-      label: "Active loans",
-      value: String(active.length).padStart(2, "0"),
-      hint: "Currently amortizing",
-      icon: Wallet,
-      variant: "success" as const,
-    },
-    {
-      label: "Portfolio value",
+      label: "Portfolio Value",
       value: compactCurrency(portfolio),
-      hint: "Total borrowed",
+      hint: "Total borrowed historical",
       icon: PiggyBank,
       variant: "cool" as const,
     },
     {
-      label: "Monthly EMI",
-      value: compactCurrency(monthlyEmi),
-      hint: "Across active loans",
+      label: "Interest YTD",
+      value: compactCurrency(totalInterestPaidYTD),
+      hint: "Paid this calendar year",
       icon: Banknote,
       variant: "warm" as const,
     },
     {
-      label: "Avg. interest",
-      value: percent(avgRate),
-      hint: "Weighted by count",
+      label: "Weighted Avg. Rate",
+      value: percent(weightedAvgRate),
+      hint: "Weighted by outstanding balance",
       icon: Percent,
       variant: "neutral" as const,
+    },
+    {
+      label: "Avg. Maturity (WAM)",
+      value: `${weightedAvgMaturity.toFixed(1)} yr${weightedAvgMaturity === 1 ? "" : "s"}`,
+      hint: "Remaining weighted tenure",
+      icon: Layers,
+      variant: "success" as const,
     },
   ];
 
@@ -165,6 +270,7 @@ function Dashboard() {
         ))}
       </div>
 
+      {/* Row 1: Balance Trend and Principal vs Interest */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -183,7 +289,7 @@ function Dashboard() {
           {trend.length > 0 ? (
             <BalanceTrendChart data={trend} />
           ) : (
-            <EmptyChart message="Add a loan to see balance trends." />
+            <EmptyChart message="Add an active loan to see balance trends." />
           )}
         </motion.div>
 
@@ -215,10 +321,51 @@ function Dashboard() {
         </motion.div>
       </div>
 
+      {/* Row 2: Cash Outflow Projection and Lender Exposure */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="glass-card rounded-2xl p-5 lg:col-span-2"
+        >
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-semibold">Monthly cash outflow projection</h2>
+              <p className="text-xs text-muted-foreground">
+                Next 12 months debt service (principal & interest)
+              </p>
+            </div>
+          </div>
+          {outflowData.length > 0 && outflowData.some((d) => d.Principal + d.Interest > 0) ? (
+            <MonthlyOutflowChart data={outflowData} />
+          ) : (
+            <EmptyChart message="No active loans found for projections." />
+          )}
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className="glass-card rounded-2xl p-5"
+        >
+          <div className="mb-2">
+            <h2 className="text-base font-semibold">Lender counterparty exposure</h2>
+            <p className="text-xs text-muted-foreground">Outstanding balance by bank</p>
+          </div>
+          {lenderData.length > 0 ? (
+            <LenderExposureChart data={lenderData} />
+          ) : (
+            <EmptyChart message="No active loans to aggregate." />
+          )}
+        </motion.div>
+      </div>
+
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
+        transition={{ delay: 0.3 }}
         className="glass-card rounded-2xl"
       >
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
